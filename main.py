@@ -47,7 +47,6 @@ def modify_crf_number(value):
 
 def scrape_fee_table(county, case_number, first_name, last_name, middle_name=''):
     scraper = CaseScraper(county, case_number, first_name, last_name, middle_name)
-    st.write(scraper.soup)
     return scraper.fee_table, scraper.fee_table_issued, scraper.url
 
 def calculate_total_fees(df):
@@ -148,12 +147,11 @@ if 'filtered_sentence_df' in locals():
         for case_number, county in zip(case_list, county_list):
             case_number = case_number.split('CT')[0].strip()
             county = county.split()[0]
-            try:
-                fee_table, fee_table_issued, url = scrape_fee_table(county, case_number, official_first_name,
+            fee_table, fee_table_issued, url = scrape_fee_table(county, case_number, official_first_name,
                                                                     official_last_name, official_middle_name)
-            except ValueError as e:
-                st.write(f"No case information found for {case_number}")
-                continue
+            # except ValueError as e:
+            #     st.write(f"No case information found for {case_number}")
+            #     continue
 
             time.sleep(1)
 
