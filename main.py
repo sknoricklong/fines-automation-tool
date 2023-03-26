@@ -8,7 +8,8 @@ from bs4 import BeautifulSoup
 import httpx
 
 url = f"https://www.oscn.net/dockets/GetCaseInformation.aspx?db=atoka&number=CM-2015-00132&cmid=13466"
-response = httpx.get(url)
+headers = {'User-Agent': 'Sean, irishluck42@gmail.com'}
+response = httpx.get(url, headers=headers)
 soup = BeautifulSoup(response.content, "html.parser")
 
 st.write(response.content)
