@@ -1,18 +1,51 @@
-from datetime import datetime
-import streamlit as st
-import pandas as pd
 import time
-from casescraper import CaseScraper
-from bs4 import BeautifulSoup
-
 import httpx
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import streamlit as st
+
+
+def scrape_page(url):
+    if "recaptcha" in url.lower():
+        st.write("Captcha detected.")
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("start-maximized")
+        chrome_options.add_argument("disable-infobars")
+        chrome_options.add_argument("--disable-extensions")
+
+        driver = webdriver.Chrome(executable_path="C:\\Utility\\BrowserDrivers\\chromedriver.exe",
+                                  chrome_options=chrome_options)
+
+        driver.get(url)
+
+        WebDriverWait(driver, 10).until(EC.frame_to_be_available_and_switch_to_it(
+            (By.XPATH, "//iframe[starts-with(@name, 'a-') and starts-with(@src, 'https://www.google.com/recaptcha')]")))
+        WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "div.recaptcha-checkbox-checkmark"))).click()
+
+        # Wait for the CAPTCHA to be solved before continuing
+        time.sleep(5)
+
+        page_source = driver.page_source
+        driver.quit()
+
+    else:
+        response = httpx.get(url)
+        page_source = response.content
+
+    soup = BeautifulSoup(page_source, "html.parser")
+    return soup
 
 url = f"https://www.oscn.net/dockets/GetCaseInformation.aspx?db=atoka&number=CM-2015-00132&cmid=13466"
-headers = {'User-Agent': 'Sean, irishluck42@gmail.com'}
-response = httpx.get(url, headers=headers)
-soup = BeautifulSoup(response.content, "html.parser")
+content = scrape_page(url)
 
-st.write(response.content)
+st.write(content)
 
 #
 # def load_dataframes():
