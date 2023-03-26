@@ -11,7 +11,7 @@ url = f"https://www.oscn.net/dockets/GetCaseInformation.aspx?db=oklahoma&number=
 response = httpx.get(url)
 soup = BeautifulSoup(response.content, "html.parser")
 
-st.write(soup)
+st.write(response)
 
 #
 # def load_dataframes():
