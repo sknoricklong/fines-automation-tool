@@ -152,8 +152,8 @@ if 'filtered_sentence_df' in locals():
         for case_number, county in zip(case_list, county_list):
             case_number = case_number.split('CT')[0].strip()
             county = county.split()[0]
-            try:
-                fee_table, fee_table_issued, url = scrape_fee_table(county, case_number, official_first_name,
+
+            fee_table, fee_table_issued, url = scrape_fee_table(county, case_number, official_first_name,
                                                                     official_last_name, official_middle_name)
             # except ValueError as e:
             #     st.write(f"No case information found for {case_number}")
