@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 import httpx
 
-url = f"https://www.google.com/"
+url = f"https://www.oscn.net/dockets/GetCaseInformation.aspx?db=atoka&number=CM-2015-00132&cmid=13466"
 response = httpx.get(url)
 soup = BeautifulSoup(response.content, "html.parser")
 
