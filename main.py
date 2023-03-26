@@ -47,6 +47,7 @@ def modify_crf_number(value):
 
 def scrape_fee_table(county, case_number, first_name, last_name, middle_name=''):
     scraper = CaseScraper(county, case_number, first_name, last_name, middle_name)
+    st.write(scraper.soup)
     return scraper.fee_table, scraper.fee_table_issued, scraper.url
 
 def calculate_total_fees(df):
