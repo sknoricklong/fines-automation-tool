@@ -10,7 +10,8 @@ class CaseScraper:
         self.middle_name = middle_name
         self.county = county.split()[0]
         self.case_number = case_number
-        self.response = httpx.get(f"https://www.oscn.net/dockets/GetCaseInformation.aspx?db={self.county}&number=CF-{self.case_number}")
+        self.url = f"https://www.oscn.net/dockets/GetCaseInformation.aspx?db={self.county}&number=CF-{self.case_number}"
+        self.response = httpx.get(self.url)
         self.soup = BeautifulSoup(self.response.content, "html.parser")
         self.tables = self.soup.find_all("table", class_="docketlist ocis")
         self.case_table = self.soup.find('table', class_='caseStyle')

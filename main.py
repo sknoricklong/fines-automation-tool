@@ -67,12 +67,12 @@ def modify_crf_number(value):
 @st.cache_data
 def scrape_fee_table(county, case_number, first_name, last_name, middle_name=''):
     scraper = CaseScraper(county, case_number, first_name, last_name, middle_name)
-    return scraper.fee_table, scraper.fee_table_issued
+    return scraper.fee_table, scraper.fee_table_issued, scraper.url
 
 def load_dataframes():
-    alias_df = pd.read_csv("data/alias_output.csv")
-    sentence_df = pd.read_csv("data/sentence_output.csv", dtype={'id': str, 'prison_sentence': float}, parse_dates=['conviction_date'])
-    profile_df = pd.read_csv("data/profile_output.csv", dtype={'id': str}, parse_dates=['birthdate'])
+    alias_df = pd.read_csv("data/alias.csv")
+    sentence_df = pd.read_csv("data/sentence.csv", dtype={'id': str, 'prison_sentence': float}, parse_dates=['conviction_date'])
+    profile_df = pd.read_csv("data/profile.csv", dtype={'id': str}, parse_dates=['birthdate'])
     return alias_df, sentence_df, profile_df
 def filter_alias_df(alias_df, first_name, last_name):
     first_name, last_name = first_name.lower(), last_name.lower()
@@ -85,13 +85,18 @@ def filter_sentence_df(sentence_df, id):
     return filtered_df.reset_index(drop=True)
 
 def search_profile(profile_df, id):
+    official_last_name = None
+    official_first_name = None
+    official_middle_name = None
+    status = None
+    facility = None
+
     filtered_df = profile_df[profile_df['id'].eq(id)]
     if len(filtered_df) > 0:
         status, facility = filtered_df.iloc[0][['status', 'facility']]
         official_last_name = filtered_df['last_name'].values[0]
         official_first_name = filtered_df['first_name'].values[0]
         official_middle_name = filtered_df['middle_name'].values[0] if 'middle_name' in filtered_df.columns else None
-
     else:
         status, facility = 'ID not found', 'ID not found'
     return status, facility, official_last_name, official_first_name, official_middle_name, filtered_df.reset_index(drop=True)
@@ -99,7 +104,7 @@ def search_profile(profile_df, id):
 alias_df, sentence_df, profile_df = load_dataframes()
 
 st.title("Step 1: Search Client Name")
-st.write("https://okoffender.doc.ok.gov/")
+st.write("Source: https://okoffender.doc.ok.gov/")
 
 first_name = st.text_input("First name:")
 last_name = st.text_input("Last name:")
@@ -109,11 +114,11 @@ if first_name and last_name:
     st.write(filtered_df)
 
 st.title("Step 2: Get Offender Recprd")
-st.write("https://okoffender.doc.ok.gov/")
+st.write("Source: https://okoffender.doc.ok.gov/")
 id = st.text_input("Client ID:")
 
 if id:
-    id = str(id).zfill(10)
+    #id = str(id).zfill(10)
     filtered_sentence_df = filter_sentence_df(sentence_df, id)
     st.write(filtered_sentence_df)
 
@@ -130,7 +135,7 @@ if id:
     st.write(f"Unique Cases: {', '.join(unique_cases)}")
 
 st.title("Step 3: See Fee Payments")
-
+st.write("Source: https://www.oscn.net/")
 if 'filtered_sentence_df' in locals():
     # Add a new column with default value of False
     filtered_sentence_df.insert(0, 'selected', False)
@@ -152,7 +157,7 @@ if 'filtered_sentence_df' in locals():
 
         for case_number, county in zip(case_list, county_list):
             county = county.split()[0]
-            fee_table, fee_table_issued = scrape_fee_table(county, case_number, official_first_name, official_last_name,
+            fee_table, fee_table_issued, url = scrape_fee_table(county, case_number, official_first_name, official_last_name,
                                              official_middle_name)
             time.sleep(1)
 
@@ -162,6 +167,7 @@ if 'filtered_sentence_df' in locals():
 
             result.append({
                 "case_number": case_number,
+                "url": url,
                 "fee_table_paid": fee_table,
                 "total_fees_paid": total_fees_paid,
                 "total_months_paid": total_months_paid,
@@ -179,14 +185,15 @@ if 'filtered_sentence_df' in locals():
     def display_results(results):
         for res in results:
             st.markdown(f"**Case Number: {res['case_number']}**")
-            st.write(res["fee_table_issued"])
+            st.write("URL: ", res["url"])
             st.write("Total Fees Issued: ", res["total_fees_issued"])
-            st.write(res["fee_table_paid"])
+            st.write(res["fee_table_issued"])
             st.write("Total Fees Paid: ", res["total_fees_paid"])
             st.write("Total Months Paid: ", res["total_months_paid"])
             st.write("Consecutive Months Paid: ", res["max_consecutive"])
             st.write("Consecutive Months Start: ", res["start_date"])
             st.write("Consecutive Months End: ", res["end_date"])
+            st.write(res["fee_table_paid"])
             st.write("")
 
     edited_df = create_data_editor(filtered_sentence_df)
