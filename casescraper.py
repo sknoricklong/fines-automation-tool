@@ -22,50 +22,41 @@ class CaseScraper:
         self.fee_table, self.fee_table_issued = self.extract_fee_table(self.soup, self.case_number, self.first_name, self.last_name, self.middle_name)
 
     def extract_fee_table(self, soup, case_number, first_name, last_name, middle_name):
-        # Find all tables with class "docketlist ocis"
-        tables = soup.find_all("table", class_="docketlist ocis")
-        # Find the table with class "caseStyle"
-        case_table = soup.find('table', class_='caseStyle')
-        data = []
+        tables = soup.select("table.docketlist.ocis, table.docketlist.kp")
+        dataframes = []
         for table in tables:
-            # Find all rows with class "docketRow oddRow primary-entry" or "docketRow evenRow primary-entry"
-            rows = table.select('tr.docketRow.oddRow.primary-entry, tr.docketRow.evenRow.primary-entry')
+            try:
+                df = pd.read_html(str(table))[0]
+                dataframes.append(df)
+            except:
+                pass
+        fee_table = pd.concat(dataframes)
+        fee_table.columns = [col.lower() for col in fee_table.columns]
+        fee_table['date'] = fee_table['date'].fillna(method='ffill')
+        default_amount = ""
+        fee_table['amount'].fillna(default_amount, inplace=True)
 
-            for row in rows:
-                # Extract the date from the first <td> tag
-                date = row.find('td').text.strip()
-                if re.match(r'\d{2}-\d{2}-\d{4}', date):
-                    # Extract the docket code from the <font> tag with class "docket_code"
-                    docket_code = row.find('font', class_='docket_code').text.strip()
+        try:
+            # Convert first_name and last_name to lowercase
+            first_name = first_name.lower()
+            last_name = last_name.lower()
 
-                    # Extract the description from the <td> tag with class "description-wrapper"
-                    description = row.find(class_='description-wrapper').text.strip()
-                    description = re.sub(r'\s+', ' ', description)
-
-                    # Extract the party name from the <span> tag with class "partyname"
-                    party = [p.text.strip() for p in row.find_all(class_='partyname') if p is not None]
-                    party = ' '.join(party)
-
-                    # Extract the amount from the <td> tag with valign="top" and align="right"
-                    amount = row.find('td', valign='top', align='right').text.strip().replace('$', '')
-
-                    # Add the data as a tuple to the list
-                    data.append((case_number, date, docket_code, description, party, amount))
-
-        # Create a DataFrame from the list of tuples
-        fee_table = pd.DataFrame(data, columns=['case_number', 'date', 'docket_code', 'description', 'party', 'amount'])
-        fee_table['date'] = pd.to_datetime(fee_table['date'])
-
-        # Extract the full name of the party from first, last, and middle names
-        name = f"{last_name}, {first_name} {middle_name}".strip().lower()
-        fee_table = fee_table[fee_table['party'].str.lower()==name]
+            if not fee_table['party'].empty:
+                # Filter the fee_table dataframe based on party column
+                fee_table = fee_table[
+                    fee_table['party'].str.lower().str.contains(first_name) &
+                    fee_table['party'].str.lower().str.contains(last_name)
+                    ]
+        except AttributeError as e:
+            pass
 
         fee_table_issued = fee_table[fee_table["amount"].str.contains('\d')]
-        fee_table_issued['amount'] = fee_table_issued['amount'].str.replace('[ ,$]', '', regex=True).astype(float)
+        fee_table_issued.loc[:, 'amount'] = fee_table_issued['amount'].str.replace('[ ,$]', '', regex=True).astype(
+            float)
 
         # Filter the fee table by docket code and party name
         fee_table = fee_table[
-            (fee_table['docket_code'].isin(['ACCOUNT', 'PAY']))]
+            (fee_table['code'].isin(['ACCOUNT', 'PAY']))]
 
         # Extract the dollar amount from the description column using regular expressions
         pattern = r'TOTAL AMOUNT PAID:\s*\$?\s*(\d+\.\d{2})'

@@ -1,3 +1,4 @@
+from datetime import datetime
 import streamlit as st
 import pandas as pd
 import time
@@ -18,9 +19,9 @@ def filter_alias_df(alias_df, first_name, last_name):
 
 @st.cache_data
 def filter_sentence_df(sentence_df, id):
-    filtered_df = sentence_df[sentence_df['id'].eq(id)].astype(str)
-    filtered_df['crf_number'] = filtered_df['crf_number'].apply(modify_crf_number)
-    filtered_df['community_sentence'] = filtered_df['community_sentence'].astype(float)
+    filtered_df = sentence_df.loc[sentence_df['id'].eq(id)].astype(str).copy()
+    filtered_df.loc[:, 'crf_number'] = filtered_df['crf_number'].apply(modify_crf_number)
+    filtered_df.loc[:, 'community_sentence'] = filtered_df['community_sentence'].astype(float)
     return filtered_df.reset_index(drop=True)
 
 @st.cache_data
@@ -45,7 +46,7 @@ def modify_crf_number(value):
     num_parts = value.split('-')
     if len(num_parts[0]) == 2:
         num = int(num_parts[0])
-        num_parts[0] = '1999' if num >= 24 else '2000'
+        num_parts[0] = '19' + num_parts[0] if num >= 24 else '20' + num_parts[0]
     return '-'.join(num_parts)
 
 @st.cache_data()
@@ -57,49 +58,48 @@ def calculate_total_fees(df):
     return df['amount'].sum()
 
 def calculate_consecutive_months(df):
-    # convert the 'date' column to a pandas datetime object
+    if len(df) == 0:
+        return 0, 0, None, None
+
+    # Ensure the date column is in datetime format
     df['date'] = pd.to_datetime(df['date'])
 
-    # generate a list of consecutive months
-    month_list = []
-    for i in range(len(df)-1):
-        current_month = df['date'][i].month
-        next_month = df['date'][i+1].month
-        if (next_month - current_month) == 1:
-            month_list.append(current_month)
-        else:
-            month_list.append(current_month)
-            month_list.append('break')
+    # Set the date column as the index and resample to a monthly frequency
+    df.set_index('date', inplace=True)
+    df_monthly = df.resample('M').count().reset_index()
 
-    # loop through the month list to find the longest consecutive sequence
-    max_consecutive = 0
-    consecutive_count = 0
-    total_months_paid = 0
-    start_index = 0
-    end_index = 0
-    temp_start_index = 0
-    for i, month in enumerate(month_list):
-        if month != 'break':
-            consecutive_count += 1
-            total_months_paid += 1
-            if consecutive_count > max_consecutive:
-                max_consecutive = consecutive_count
-                start_index = temp_start_index
-                end_index = i
-        else:
-            consecutive_count = 0
-            temp_start_index = i + 1
+    # Create a custom function to find the longest streak of consecutive months
+    def longest_streak(data):
+        max_streak = 0
+        current_streak = 0
+        start_month = None
+        end_month = None
+        total_paid_months = 0
 
-    # calculate the start and end date of the longest streak
-    start_date = df['date'][start_index].date()
-    end_date = (df['date'][end_index + 1] if end_index + 1 < len(df) else df['date'][end_index]).date()
+        for i, row in data.iterrows():
+            if row[1] > 0:
+                total_paid_months += 1
+                current_streak += 1
+                if current_streak > max_streak:
+                    max_streak = current_streak
+                    start_month_index = data.loc[i - max_streak + 1, 'date']
+                    end_month_index = row['date']
+                    start_month = df.loc[df.index >= start_month_index].first_valid_index()
+                    end_month = df.loc[df.index <= end_month_index].last_valid_index()
+            else:
+                current_streak = 0
 
-    return max_consecutive, total_months_paid, start_date, end_date
+        return max_streak, start_month, end_month, total_paid_months
+
+    # Calculate the longest streak of consecutive months and total paid months
+    streak_length, streak_start, streak_end, total_paid_months = longest_streak(df_monthly)
+
+    return streak_length, total_paid_months, streak_start, streak_end
 
 
 alias_df, sentence_df, profile_df = load_dataframes()
 
-st.title("Step 1: Search Client Name")
+st.title("Step 1: Find Client ID")
 st.write("Source: https://okoffender.doc.ok.gov/")
 
 first_name = st.text_input("First name:")
@@ -107,7 +107,7 @@ last_name = st.text_input("Last name:")
 
 if first_name and last_name:
     filtered_df = filter_alias_df(alias_df, first_name, last_name)
-    st.write(filtered_df)
+    st.write(filtered_df.reset_index(drop=True))
 
 st.title("Step 2: Get Offender Record")
 st.write("Source: https://okoffender.doc.ok.gov/")
@@ -129,9 +129,10 @@ if id:
 
     st.write(f"Unique Counties: {', '.join(unique_counties)}")
     st.write(f"Unique Cases: {', '.join(unique_cases)}")
-    st.write(f"Years Served: {str(filtered_sentence_df['community_sentence'].sum())}")
+    # years_served = round(filtered_sentence_df['community_sentence'].sum(), 2)
+    # st.write(f"Years Served: {str(years_served)}")
 
-st.title("Step 3: See Fee Payments")
+st.title("Step 3: Select Cases to Find Fees")
 st.write("Source: https://www.oscn.net/")
 
 if 'filtered_sentence_df' in locals():
@@ -149,9 +150,15 @@ if 'filtered_sentence_df' in locals():
         results = []
 
         for case_number, county in zip(case_list, county_list):
+            case_number = case_number.split('CT')[0].strip()
             county = county.split()[0]
-            fee_table, fee_table_issued, url = scrape_fee_table(county, case_number, official_first_name,
-                                                                official_last_name, official_middle_name)
+            try:
+                fee_table, fee_table_issued, url = scrape_fee_table(county, case_number, official_first_name,
+                                                                    official_last_name, official_middle_name)
+            except ValueError as e:
+                st.write(f"No case information found for {case_number}")
+                continue
+
             time.sleep(1)
 
             total_fees_paid = round(calculate_total_fees(fee_table), 2)
