@@ -4,6 +4,7 @@ import pandas as pd
 import time
 from casescraper import CaseScraper
 
+@st.cache_data
 def load_dataframes():
     alias_df = pd.read_csv("data/alias.csv")
     sentence_df = pd.read_csv("data/sentence.csv", dtype={'id': str, 'prison_sentence': float})
