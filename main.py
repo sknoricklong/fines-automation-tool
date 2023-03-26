@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 import streamlit as st
 
 
@@ -19,8 +20,7 @@ def scrape_page(url):
         chrome_options.add_argument("disable-infobars")
         chrome_options.add_argument("--disable-extensions")
 
-        driver = webdriver.Chrome(executable_path="C:\\Utility\\BrowserDrivers\\chromedriver.exe",
-                                  chrome_options=chrome_options)
+        driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=chrome_options)
 
         driver.get(url)
 
@@ -41,6 +41,7 @@ def scrape_page(url):
 
     soup = BeautifulSoup(page_source, "html.parser")
     return soup
+
 
 url = f"https://www.oscn.net/dockets/GetCaseInformation.aspx?db=atoka&number=CM-2015-00132&cmid=13466"
 content = scrape_page(url)
