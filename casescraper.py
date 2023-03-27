@@ -2,9 +2,6 @@ import httpx
 import re
 import pandas as pd
 from bs4 import BeautifulSoup
-import requests
-import time
-
 
 class CaseScraper:
     def __init__(self, county, case_number, first_name, last_name, middle_name=""):
@@ -14,14 +11,7 @@ class CaseScraper:
         self.county = county.split()[0]
         self.case_number = case_number
         self.url = f"https://www.oscn.net/dockets/GetCaseInformation.aspx?db={self.county}&number=CF-{self.case_number}"
-        self.proxies_list = self.get_proxies()
-        while True:
-            proxy = self.get_proxy()
-            response = self.make_request(self.url, proxy)
-            if response and response.status_code == 200:
-                self.response = response
-                break
-            time.sleep(1)
+        self.response = httpx.get(self.url)
         self.soup = BeautifulSoup(self.response.content, "html.parser")
         self.tables = self.soup.find_all("table", class_="docketlist ocis")
         self.case_table = self.soup.find('table', class_='caseStyle')
@@ -29,65 +19,7 @@ class CaseScraper:
         self.docket_code = []
         self.description = []
         self.amount = []
-        self.fee_table, self.fee_table_issued = self.extract_fee_table(self.soup, self.case_number, self.first_name,
-                                                                       self.last_name, self.middle_name)
-
-    def get_proxies(self):
-        proxies_list = []
-
-        c = requests.get("https://spys.me/proxy.txt")
-        test_str = c.text
-        a = re.finditer(r"[0-9]+(?:\.[0-9]+){3}:[0-9]+", test_str, re.MULTILINE)
-        for i in a:
-            proxies_list.append(i.group())
-
-        c = requests.get("https://free-proxy-list.net/")
-        soup = BeautifulSoup(c.content, 'html.parser')
-        z = soup.find('textarea').get_text()
-        x = re.findall(r"[0-9]+(?:\.[0-9]+){3}:[0-9]+", z)
-        for proxy in x:
-            proxies_list.append(proxy)
-
-        return proxies_list
-
-    def get_proxy(self):
-        if not self.proxies_list:
-            return None
-        return self.proxies_list.pop()
-
-    def make_request(self, url, proxy):
-        if not proxy:
-            return None
-
-        proxies = {
-            "http://": f"http://{proxy}",
-            "https://": f"https://{proxy}"
-        }
-
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Pragma": "no-cache",
-            "Cache-Control": "no-cache"
-        }
-
-        try:
-            with httpx.Client(proxies=proxies, headers=headers, timeout=5.0, verify=False) as client:
-                response = client.get(url)
-            return response
-        except httpx.RequestError as exc:
-            print(f"An error occurred while requesting {exc.request.url!r}: {exc}")
-            return None
-
-    def get_response(self):
-        self.proxies_list = self.get_proxies()
-
-        while True:
-            proxy = self.get_proxy()
+        self.fee_table, self.fee_table_issued = self.extract_fee_table(self.soup, self.case_number, self.first_name, self.last_name, self.middle_name)
 
     def extract_fee_table(self, soup, case_number, first_name, last_name, middle_name):
         tables = soup.select("table.docketlist.ocis, table.docketlist.kp")
