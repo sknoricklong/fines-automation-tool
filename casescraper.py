@@ -3,6 +3,7 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
+import time
 
 
 class CaseScraper:
@@ -13,7 +14,14 @@ class CaseScraper:
         self.county = county.split()[0]
         self.case_number = case_number
         self.url = f"https://www.oscn.net/dockets/GetCaseInformation.aspx?db={self.county}&number=CF-{self.case_number}"
-        self.response = httpx.get(self.url)
+        self.proxies_list = self.get_proxies()
+        while True:
+            proxy = self.get_proxy()
+            response = self.make_request(self.url, proxy)
+            if response and response.status_code == 200:
+                self.response = response
+                break
+            time.sleep(1)
         self.soup = BeautifulSoup(self.response.content, "html.parser")
         self.tables = self.soup.find_all("table", class_="docketlist ocis")
         self.case_table = self.soup.find('table', class_='caseStyle')
@@ -23,10 +31,6 @@ class CaseScraper:
         self.amount = []
         self.fee_table, self.fee_table_issued = self.extract_fee_table(self.soup, self.case_number, self.first_name,
                                                                        self.last_name, self.middle_name)
-
-    def extract_fee_table(self, soup, case_number, first_name, last_name, middle_name=""):
-        # Implementation of extract_fee_table method goes here
-        pass
 
     def get_proxies(self):
         proxies_list = []
