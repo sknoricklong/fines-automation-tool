@@ -156,7 +156,6 @@ if 'filtered_sentence_df' in locals():
                                                                     official_last_name, official_middle_name)
             except ValueError as e:
                 st.write(f"No case information found for {case_number}")
-                st.write(url)
                 continue
 
             time.sleep(1)
