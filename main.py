@@ -13,7 +13,32 @@ from selenium.webdriver.chrome.service import Service
 from bs4 import BeautifulSoup
 import time
 from casescraper import  CaseScraper
+import pandas as pd
+from io import BytesIO
 
+
+def longest_streak(data):
+    data['date'] = pd.to_datetime(data['date'])
+    data.set_index('date', inplace=True)
+    fee_table_monthly = data.resample('M').count().reset_index()
+    max_streak = 0
+    current_streak = 0
+    total_paid_months = 0
+
+    # Ensure the values in the data are numeric
+    fee_table_monthly = fee_table_monthly.apply(pd.to_numeric, errors='coerce')
+
+    for i, row in fee_table_monthly.iterrows():
+        if row[1] > 0:
+            total_paid_months += 1
+            current_streak += 1
+
+            if current_streak > max_streak:
+                max_streak = current_streak
+        else:
+            current_streak = 0
+
+    return max_streak
 
 
 def update_amount_by_name(fee_table, first_name, last_name, case_number):
@@ -103,6 +128,7 @@ def extract_and_calculate(fee_table, first_name, last_name, case_number):
     fee_table.reset_index(drop=True, inplace=True)
     # Update the 'amount' column in fee_table for rows with a 0.0 amount and the full name in the 'description' column
     fee_table = update_amount_by_name(fee_table, first_name, last_name, case_number)
+    fee_table_paid = fee_table.copy()
     total_amount_paid = fee_table['amount'].sum()
     fee_table['date'] = pd.to_datetime(fee_table['date'])
 
@@ -134,7 +160,7 @@ def extract_and_calculate(fee_table, first_name, last_name, case_number):
     streak_length, total_paid_months, streak_end = longest_streak(fee_table_monthly)
 
 
-    return streak_length, total_paid_months, streak_end, total_amount_paid, total_amount_owed, has_payment_plan, already_received_waiver, fee_table, fee_table_issued
+    return streak_length, total_paid_months, streak_end, total_amount_paid, total_amount_owed, has_payment_plan, already_received_waiver, fee_table_paid, fee_table_issued
 
 def navigate_and_get_url_soup(url_list, case_list):
     # Set up Chrome options for headless mode
@@ -501,5 +527,134 @@ if st.button("Done selecting? Click here to pull data."):
     st.write("Total Fees Paid: ", total_fees_paid_sum)
     st.write("Total Months Paid: ", total_months_paid_sum)
     st.write("Max Consecutive Months Paid: ", max_consecutive_sum)
+
+
+    def generate_excel_content(results, summary):
+        output = BytesIO()
+
+        # Create a summary DataFrame
+        summary_df = pd.DataFrame(
+            data=summary,
+            index=[0],
+            columns=['Total Cases Searched', 'Total Fees Issued', 'Total Fees Paid', 'Total Months Paid',
+                     'Max Consecutive Months Paid - Individual']
+        )
+
+        # Initialize DataFrames for combined fee_table_paid and individual case summaries
+        combined_fee_table_paid = pd.DataFrame()
+        individual_case_summaries = pd.DataFrame()
+
+        # Save individual case information to separate sheets and update combined_fee_table_paid
+        for case_number, result in results.items():
+            url_index = case_list.index(case_number)
+            url = url_list[url_index]
+            if "oscn.net" in url:
+                streak_length, total_paid_months, _, total_amount_paid, total_amount_owed, _, _, fee_table_paid, fee_table_issued = result
+                receipts_table = None
+            else:
+                url = "https://www1.odcr.com" + url
+                total_amount_owed, receipts_table = result
+                total_amount_paid = sum(receipts_table["Amount"]) if receipts_table is not None else 0
+                fee_table_paid = fee_table_issued = None
+                streak_length = total_paid_months = None
+
+            # Create a DataFrame with the individual case information (topline)
+            case_info_df = pd.DataFrame(
+                data={
+                    'Case Number': [case_number],
+                    'URL': [url],
+                    'Total Amount Owed': [total_amount_owed],
+                    'Total Amount Paid': [total_amount_paid],
+                    'Streak Length': [streak_length],
+                    'Total Paid Months': [total_paid_months]
+                }
+            )
+
+            # Append individual case summary to the DataFrame
+            individual_case_summaries = individual_case_summaries.append(case_info_df, ignore_index=True)
+
+            # Append fee_table_paid to the combined DataFrame
+            if fee_table_paid is not None:
+                combined_fee_table_paid = combined_fee_table_paid.append(fee_table_paid, ignore_index=True)
+
+        # Calculate the longest streak for the combined fee_table_paid
+        max_combined_streak = longest_streak(combined_fee_table_paid.reset_index())
+        summary_df['Max Consecutive Months Paid - All'] = max_combined_streak
+
+        # Save summary DataFrame, individual_case_summaries, and combined_fee_table_paid to the first sheet
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            summary_df.to_excel(writer, sheet_name='Summary', index=False)
+            individual_case_summaries.to_excel(writer, sheet_name='Summary', index=False, startrow=len(summary_df) + 1)
+
+            combined_fee_table_paid['date'] = pd.to_datetime(combined_fee_table_paid['date'])
+            combined_fee_table_paid = combined_fee_table_paid.sort_values(by='date')
+            combined_fee_table_paid['date'] = combined_fee_table_paid['date'].dt.strftime('%m-%d-%Y')
+            combined_fee_table_paid.reset_index(drop=True, inplace=True)
+            combined_fee_table_paid.to_excel(writer, sheet_name='Summary', index=True,
+                                             startrow=len(summary_df) + len(individual_case_summaries) + 3)
+
+            # Save individual case information to separate sheets
+            for case_number, result in results.items():
+                url_index = case_list.index(case_number)
+                url = url_list[url_index]
+                if "oscn.net" in url:
+                    streak_length, total_paid_months, _, total_amount_paid, total_amount_owed, _, _, fee_table_paid, fee_table_issued = result
+                    receipts_table = None
+                else:
+                    url = "https://www1.odcr.com" + url
+                    total_amount_owed, receipts_table = result
+                    total_amount_paid = sum(receipts_table["Amount"]) if receipts_table is not None else 0
+                    fee_table_paid = fee_table_issued = None
+                    streak_length = total_paid_months = None
+
+                    # Create a DataFrame with the individual case information (topline)
+                case_info_df = pd.DataFrame(
+                    data={
+                        'Case Number': [case_number],
+                        'URL': [url],
+                        'Total Amount Owed': [total_amount_owed],
+                        'Total Amount Paid': [total_amount_paid],
+                        'Streak Length': [streak_length],
+                        'Total Paid Months': [total_paid_months]
+                    }
+                )
+
+                # Save the individual case information to a new sheet
+                case_info_df.to_excel(writer, sheet_name=f'Case {case_number}', index=False, startrow=0)
+
+                # Save fee_table_paid, fee_table_issued, and receipts_table to the same sheet
+                workbook = writer.book
+                worksheet = writer.sheets[f'Case {case_number}']
+
+                if fee_table_paid is not None:
+                    fee_table_paid.to_excel(writer, sheet_name=f'Case {case_number}', index=False, startrow=5)
+                    worksheet.write(4, 0, 'Fee Table Paid')
+                if fee_table_issued is not None:
+                    fee_table_issued.to_excel(writer, sheet_name=f'Case {case_number}', index=False, startrow=5,
+                                              startcol=fee_table_paid.shape[1] + 1)
+                    worksheet.write(4, fee_table_paid.shape[1] + 1, 'Fee Table Issued')
+                if receipts_table is not None:
+                    startcol = fee_table_paid.shape[1] + fee_table_issued.shape[1] + 2
+                    receipts_table.to_excel(writer, sheet_name=f'Case {case_number}', index=False, startrow=5,
+                                            startcol=startcol)
+                    worksheet.write(4, startcol, 'Receipts Table')
+
+            output.seek(0)
+            return output
+
+    excel_content = generate_excel_content(results, {
+        'Total Cases Searched': len(results),
+        'Total Fees Issued': total_fees_issued_sum,
+        'Total Fees Paid': total_fees_paid_sum,
+        'Total Months Paid': total_months_paid_sum,
+        'Max Consecutive Months Paid - Individual': max_consecutive_sum
+    })
+
+    st.download_button(
+        label="Download Excel",
+        data=excel_content,
+        file_name=f"{last_name}_{first_name}_.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 
