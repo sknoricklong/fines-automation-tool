@@ -3,7 +3,6 @@ from utils import *
 from data_processing import *
 from web_navigation import *
 
-st.write(st.secrets['GUID'])
 alias_df, sentence_df, profile_df = load_dataframes()
 
 st.title("Step 1: Find Client ID")
@@ -102,7 +101,7 @@ if st.button("Done selecting? Click here to pull data."):
     non_oscn_url_list = [url for url in url_list if "oscn.net" not in url]
     non_oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" not in url]
 
-    oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, guid)
+    oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, st.secrets['GUID'])
     oscn_results = process_urls(oscn_case_soup_dict, first_name, last_name)
 
     non_oscn_results = {}
