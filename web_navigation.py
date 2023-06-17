@@ -8,8 +8,7 @@ import time
 import httpx
 from data_processing import *
 from bs4 import BeautifulSoup
-
-
+from pyquery import PyQuery as pq
 
 def navigate_and_get_url_soup(url_list, case_list, guid):
     url_list, case_list = zip(*set(zip(url_list, case_list)))
@@ -31,7 +30,7 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     soup = None  # Initialize soup
     # If the request was successful, parse the result
     if response.status_code == 200:
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = pq(response.content)
 
     st.write(soup)
 
