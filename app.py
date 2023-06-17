@@ -3,6 +3,7 @@ from utils import *
 from data_processing import *
 from web_navigation import *
 
+guid = st.secrets['guid']
 alias_df, sentence_df, profile_df = load_dataframes()
 
 st.title("Step 1: Find Client ID")
@@ -27,6 +28,10 @@ if id:
         profile_df, id)
     st.subheader("Client Information:")
     st.write(filtered_profile_df)
+
+    first_name = official_first_name
+    middle_name = official_middle_name
+    last_name = official_last_name
 
     st.subheader("Sentence Cases:")
     if filtered_sentence_df.empty:
@@ -75,7 +80,7 @@ if combined_df is not None:
         st.write("No data found.")
 
     if 'filtered_df' in locals():
-        filtered_df.insert(0, 'selected', False)
+        filtered_df.insert(0, 'selected', True)
         edited_df = st.experimental_data_editor(filtered_df, use_container_width=True, num_rows="dynamic", key="unique_key")
 
 st.title("Step 4: Select Cases to Find Fees")
@@ -116,6 +121,7 @@ if st.button("Done selecting? Click here to pull data."):
     #     max_consecutive_sum = 0
 
     max_consecutive_sum = max([result[0] for result in results.values()])
+    results = dict(sorted(results.items(), key=lambda item: item[1][0], reverse=True))
 
     # Display individual case results
     for case_number, result in results.items():
