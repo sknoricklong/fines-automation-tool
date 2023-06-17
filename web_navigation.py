@@ -10,8 +10,6 @@ import httpx
 from data_processing import *
 
 
-
-
 def navigate_and_get_url_soup(url_list, case_list, guid):
     url_list, case_list = zip(*set(zip(url_list, case_list)))
 
@@ -27,8 +25,14 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
 
     # Make the request
     response = requests.get(url, headers=headers)
-    soups = BeautifulSoup(response.text, 'html.parser')
-    st.write(soups)
+
+    # Check if response.text is None
+    if response.text is not None:
+        soups = BeautifulSoup(response.text, 'html.parser')
+    else:
+        soups = "None"
+
+    return soups
 
     # # Reserve a slot
     # progress_text = st.empty()
