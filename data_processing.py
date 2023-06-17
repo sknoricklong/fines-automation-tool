@@ -250,7 +250,7 @@ def search_cases(first_name, last_name, middle_name=''):
 
     # Define headers for the request
     headers = {
-        "User-Agent": st.secrets['GUID'],
+        "User-Agent": st.secrets['account']['guid'],
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
     }
 

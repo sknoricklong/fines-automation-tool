@@ -102,7 +102,7 @@ if st.button("Done selecting? Click here to pull data."):
     non_oscn_url_list = [url for url in url_list if "oscn.net" not in url]
     non_oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" not in url]
 
-    oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, st.secrets['GUID'])
+    oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, st.secrets['account']['guid'])
     oscn_results = process_urls(oscn_case_soup_dict, first_name, last_name)
 
     non_oscn_results = {}
