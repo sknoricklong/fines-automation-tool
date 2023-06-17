@@ -323,9 +323,8 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
         }
 
     url = url_list[0]
-    response = requests.get(url, headers=headers)
-    html_content = response.content.decode('utf-8')
-    st.write(len(response.content))
+    response = requests.get(url)
+    html_content = response.content
     soup = BeautifulSoup(html_content, 'html5lib')
     st.write(soup)
 
