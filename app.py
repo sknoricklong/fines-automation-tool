@@ -107,7 +107,7 @@ if st.button("Done selecting? Click here to pull data."):
     base = "https://www.oscn.net/dockets/"
     oscn_url_list = [base + url for url in url_list]
     oscn_case_list = [case_list[i] for i, url in enumerate(url_list)]
-    oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, guid)
+    oscn_case_soup_dict = navigate_and_get_url_soups(oscn_url_list, oscn_case_list, guid)
     # results = process_urls(oscn_case_soup_dict, first_name, last_name)
     #
     # total_fees_paid_sum = 0
