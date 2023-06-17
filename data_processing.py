@@ -322,7 +322,7 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     # Check if response.text is None
     # Make the request
     response = requests.get(url, headers=headers)
-    soup = None  # Initialize soup
+    soup = "test"  # Initialize soup
     # If the request was successful, parse the result
     if response.status_code == 200:
         #soup = pq(response.content)
