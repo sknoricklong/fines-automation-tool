@@ -1,16 +1,16 @@
 import re
-import streamlit as st
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
-from bs4 import BeautifulSoup
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+import requests
 import time
+from bs4 import BeautifulSoup
+import streamlit as st
 import pandas as pd
-
-
 
 def longest_streak(data):
     data['date'] = pd.to_datetime(data['date'])
@@ -199,43 +199,108 @@ def extract_docket_table(soup):
 
     return fee_table
 
+# @st.cache_data
+# def search_cases(party_name):
+#     url = "https://www1.odcr.com/"
+#
+#     @st.cache_resource
+#     def get_driver():
+#         return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+#
+#     options = Options()
+#     options.add_argument('--disable-gpu')
+#     options.add_argument('--headless')
+#
+#     driver = get_driver()
+#
+#     # Navigate to the website
+#     # Navigate to the website
+#     driver.get(url)
+#
+#     # Find the input field by id and send the party_name
+#     input_element = driver.find_element(By.ID, "search-party")
+#     input_element.send_keys(party_name)
+#     st.write(party_name)
+#
+#     # Click the "Search for cases" button
+#     submit_button = driver.find_element(By.XPATH, '//input[@type="submit"]')
+#     submit_button.click()
+#
+#     # Add an explicit wait to allow more time for the tables to load
+#     time.sleep(10)
+#
+#     # Get the page source and parse it with BeautifulSoup
+#     html_content = driver.page_source
+#     soup = BeautifulSoup(html_content, 'html.parser')
+#
+#     # Extract the DataFrames using BeautifulSoup
+#     dataframes = extract_fee_table(soup)
+#
+#     # Close the browser window
+#     driver.quit()
+#
+#     return dataframes
+
 @st.cache_data
-def search_cases(party_name):
-    url = "https://www1.odcr.com/"
+def search_cases(first_name, last_name, middle_name=''):
+    base_url = "https://www.oscn.net/dockets/Results.aspx?db=all&number=&lname={}&fname={}&mname={}"
 
-    # Set up Chrome options for headless mode
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--headless')
+    # Format the url with the provided names
+    url = base_url.format(last_name, first_name, middle_name)
 
-    # Create a new instance of the Chrome driver with headless mode
-    service = Service(executable_path=ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    # Define headers for the request
+    headers = {
+        "User-Agent": st.secrets['GUID'],
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+    }
 
-    # Navigate to the website
-    driver.get(url)
+    # Make the request
+    response = requests.get(url, headers=headers)
 
-    # Find the input field by id and send the party_name
-    input_element = driver.find_element(By.ID, "search-party")
-    input_element.send_keys(party_name)
+    # If the request was successful, parse the result
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, 'html.parser')
 
-    # Click the "Search for cases" button
-    submit_button = driver.find_element(By.XPATH, '//input[@type="submit"]')
-    submit_button.click()
+        # Find all tr elements with class 'resultTableRow'
+        rows = soup.find_all('tr', class_='resultTableRow')
 
-    # Wait for the table to load
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'table')))
+        # Prepare empty lists for DataFrame
+        case_numbers = []
+        dates = []
+        case_names = []
+        found_names = []
+        counties = []
+        links = []
 
-    # Add an explicit wait to allow more time for the tables to load
-    time.sleep(2)
+        # Loop through each row
+        for row in rows:
+            tds = row.find_all('td')
+            case_numbers.append(tds[0].text.strip())
+            dates.append(tds[1].text.strip())
+            case_names.append(tds[2].text.strip())
+            found_names.append(tds[3].text.strip())
+            links.append(tds[0].find('a')['href'])
 
-    # Get the page source and parse it with BeautifulSoup
-    html_content = driver.page_source
-    soup = BeautifulSoup(html_content, 'html.parser')
+            # Find the county, strip everything after "Found", and convert to title case
+            full_county_text = row.find_previous('table', class_='caseCourtTable').find('caption',
+                                                                                        class_='caseCourtHeader').text.strip()
+            county = full_county_text.split("Found")[0].strip().title()
+            counties.append(county)
 
-    # Extract the DataFrames using BeautifulSoup
-    dataframes = extract_fee_table(soup)
+        # Create DataFrame
+        df = pd.DataFrame({
+            'Case Number': case_numbers,
+            'County': counties,
+            'Found Party': found_names,
+            'Date': dates,
+            'Case Name': case_names,
+            'Link': links,
 
-    # Close the browser window
-    driver.quit()
+        })
 
-    return dataframes
+        return df
+
+    else:
+        print(f"Failed to get page, status code: {response.status_code}")
+        return pd.DataFrame()  # Return empty DataFrame if request fails
+

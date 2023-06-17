@@ -9,6 +9,7 @@ st.title("Step 1: Find Client ID")
 st.write("Source: https://okoffender.doc.ok.gov/")
 
 first_name = st.text_input("First name:")
+middle_name = st.text_input("Middle name:")
 last_name = st.text_input("Last name:")
 
 if first_name and last_name:
@@ -58,7 +59,7 @@ if first_name and last_name:
     search_checkbox = st.checkbox("Search Cases")
     if search_checkbox:
         party_name = f"{last_name}, {first_name}"
-        dataframes = search_cases(party_name)
+        dataframes = search_cases(first_name, last_name, middle_name)
 
         if dataframes:
             combined_df = pd.concat(dataframes, axis=0, join='outer', ignore_index=True)
