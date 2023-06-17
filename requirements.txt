@@ -7,7 +7,6 @@ requests==2.25.1
 beepy==1.0.7
 pip==21.3.1
 configparser==5.0.2
-wheel==0.36.2
 google==3.0.0
 cryptography==3.4.8
 lxml==4.6.3
