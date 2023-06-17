@@ -125,7 +125,7 @@ if st.button("Done selecting? Click here to pull data."):
     for case_number, result in results.items():
         st.markdown(f"**Results for Case Number: {case_number}**")
         url_index = case_list.index(case_number)
-        st.write("URL: ", base + url_list[url_index])
+        st.write("URL: ", url_list[url_index])
         streak_length, total_paid_months, streak_end, total_amount_paid, total_amount_owed, has_payment_plan, already_received_waiver, fee_table_paid, fee_table_issued = result
         st.write("Streak Length: ", streak_length)
         st.write("Total Paid Months: ", total_paid_months)
