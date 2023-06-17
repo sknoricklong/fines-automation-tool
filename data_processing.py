@@ -323,16 +323,17 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
 
     # Make the request
     response = requests.get(url, headers=headers)
-    table_html_list = []  # Initialize table list
+    tables_bs = []  # Initialize BeautifulSoup table list
     # If the request was successful, parse the result
     if response.status_code == 200:
         soup = pq(response.content.decode('utf-8'))
         tables = soup('table')  # Select all 'table' tags
         for table in tables:
-            table_html_list.append(pq(table).outerHtml())  # Append each table's outer HTML to the list
+            table_bs = BeautifulSoup(str(pq(table).outerHtml()), 'html.parser')
+            tables_bs.append(table_bs)  # Append each BeautifulSoup table object to the list
 
-    for table_html in table_html_list:
-        st.write(table_html)
+    for table_bs in tables_bs:
+        st.write(str(table_bs))
 
     # # Reserve a slot
     # progress_text = st.empty()
