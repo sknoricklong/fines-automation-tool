@@ -326,14 +326,10 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     tables_bs = []  # Initialize BeautifulSoup table list
     # If the request was successful, parse the result
     if response.status_code == 200:
-        soup = pq(response.content.decode('utf-8'))
-        tables = soup('table')  # Select all 'table' tags
-        for table in tables:
-            table_bs = BeautifulSoup(str(pq(table).outerHtml()), 'html.parser')
-            tables_bs.append(table_bs)  # Append each BeautifulSoup table object to the list
+        soup_pq = pq(response.content.decode('utf-8'))
+        soup_bs = BeautifulSoup(str(soup_pq), 'html.parser')  # Convert PyQuery object to BeautifulSoup
 
-    for table_bs in tables_bs:
-        st.write(str(table_bs))
+    st.write(soup_bs)
 
     # # Reserve a slot
     # progress_text = st.empty()
