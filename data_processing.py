@@ -272,6 +272,7 @@ def search_cases(guid, first_name, last_name, middle_name=''):
         found_names = []
         counties = []
         links = []
+        htmls = []
 
         # Loop through each row
         for row in rows:
@@ -280,7 +281,11 @@ def search_cases(guid, first_name, last_name, middle_name=''):
             dates.append(tds[1].text.strip())
             case_names.append(tds[2].text.strip())
             found_names.append(tds[3].text.strip())
-            links.append("https://www.oscn.net/dockets/" + tds[0].find('a')['href'])
+            link = "https://www.oscn.net/dockets/" + tds[0].find('a')['href']
+            links.append(link)
+            response = requests.get(link, headers=headers)
+            htmls.append(BeautifulSoup(response.content, 'html.parser'))
+            time.sleep(1)
 
             # Find the county, strip everything after "Found", and convert to title case
             full_county_text = row.find_previous('table', class_='caseCourtTable').find('caption',
@@ -296,6 +301,7 @@ def search_cases(guid, first_name, last_name, middle_name=''):
             'Date': dates,
             'Case Name': case_names,
             'Link': links,
+            'HTML': htmls
 
         })
 
