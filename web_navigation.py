@@ -30,7 +30,7 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
 
     # Check if response.text is None
     if response.text is not None:
-        soups = BeautifulSoup(response.text, 'lxml')
+        soups = BeautifulSoup(response.text, 'html.parser')
     else:
         soups = "None"
 
