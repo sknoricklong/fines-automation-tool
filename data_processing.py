@@ -307,6 +307,7 @@ def search_cases(guid, first_name, last_name, middle_name=''):
         print(f"Failed to get page, status code: {response.status_code}")
         return pd.DataFrame()  # Return empty DataFrame if request fails
 
+@st.cache_data
 def navigate_and_get_url_soups(url_list, case_list, guid):
     base_url = "https://www.oscn.net/dockets/Results.aspx?db=all&number=&lname={}&fname={}&mname={}"
 
