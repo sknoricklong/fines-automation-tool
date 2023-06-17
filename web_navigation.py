@@ -8,7 +8,7 @@ import time
 import httpx
 from data_processing import *
 from bs4 import BeautifulSoup as bs
-from pyquery import PyQuery as pq
+
 
 
 def process_urls(case_soup_dict, first_name, last_name):

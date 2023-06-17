@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 import streamlit as st
 import pandas as pd
 import lxml
+from pyquery import PyQuery as pq
 
 def longest_streak(data):
     data['date'] = pd.to_datetime(data['date'])
@@ -320,16 +321,18 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     url = url_list[0]
     st.write(url)
 
-    # Check if response.text is None
     # Make the request
     response = requests.get(url, headers=headers)
-    soup = "test"  # Initialize soup
+    table_html_list = []  # Initialize table list
     # If the request was successful, parse the result
     if response.status_code == 200:
-        #soup = pq(response.content)
-        soup = BeautifulSoup(response.content, 'lxml')
+        soup = pq(response.content.decode('utf-8'))
+        tables = soup('table')  # Select all 'table' tags
+        for table in tables:
+            table_html_list.append(pq(table).outerHtml())  # Append each table's outer HTML to the list
 
-    st.write(soup)
+    for table_html in table_html_list:
+        st.write(table_html)
 
     # # Reserve a slot
     # progress_text = st.empty()
