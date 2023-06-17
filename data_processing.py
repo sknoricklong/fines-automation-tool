@@ -308,25 +308,10 @@ def search_cases(guid, first_name, last_name, middle_name=''):
         return pd.DataFrame()  # Return empty DataFrame if request fails
 
 def navigate_and_get_url_soup(url_list, case_list, guid):
-    url_list, case_list = zip(*set(zip(url_list, case_list)))
+    base_url = "https://www.oscn.net/dockets/Results.aspx?db=all&number=&lname={}&fname={}&mname={}"
 
-    case_soup_dict = {}
-    total_cases = len(case_list)  # Get total cases to be processed
-
-    # Reserve a slot
-    progress_text = st.empty()
-
-    headers = {
-            "User-Agent": guid,
-            "Accept": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-
-    url = url_list[0]
-    response = requests.get(url, headers=headers)
-    html_content = response.content
-    soup = BeautifulSoup(html_content, 'html5lib')
-    st.write(soup)
+    # Format the url with the provided names
+    url = base_url.format("jordan", "leroy", "albert")
 
     # Define headers for the request
     headers = {
@@ -334,14 +319,22 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
     }
 
-    url = "https://www.oscn.net/dockets/Results.aspx?db=all&number=&lname=jordan&fname=leroy&mname=albert"
     # Make the request
     response = requests.get(url, headers=headers)
     # If the request was successful, parse the result
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, 'html.parser')
-
         st.write(soup)
+
+
+
+    # url_list, case_list = zip(*set(zip(url_list, case_list)))
+    #
+    # case_soup_dict = {}
+    # total_cases = len(case_list)  # Get total cases to be processed
+    #
+    # # Reserve a slot
+    # progress_text = st.empty()
 
     # for i, (url, case_number) in enumerate(zip(url_list, case_list), start=1):
     #     # Navigate to the website
