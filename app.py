@@ -4,6 +4,7 @@ from data_processing import *
 from web_navigation import *
 
 alias_df, sentence_df, profile_df = load_dataframes()
+guid = "1a50a493-1c09-44ff-85b8-8464e87146cf"
 
 st.title("Step 1: Find Client ID")
 st.write("Source: https://okoffender.doc.ok.gov/")
@@ -59,7 +60,7 @@ if first_name and last_name:
     search_checkbox = st.checkbox("Search Cases")
     if search_checkbox:
         party_name = f"{last_name}, {first_name}"
-        dataframes = search_cases(first_name, last_name, middle_name)
+        dataframes = search_cases(guid, first_name, last_name, middle_name)
 
         if dataframes:
             combined_df = pd.concat(dataframes, axis=0, join='outer', ignore_index=True)
@@ -102,7 +103,7 @@ if st.button("Done selecting? Click here to pull data."):
     non_oscn_url_list = [url for url in url_list if "oscn.net" not in url]
     non_oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" not in url]
 
-    oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, st.secrets['account']['guid'])
+    oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, guid)
     oscn_results = process_urls(oscn_case_soup_dict, first_name, last_name)
 
     non_oscn_results = {}

@@ -242,7 +242,7 @@ def extract_docket_table(soup):
 #     return dataframes
 
 @st.cache_data
-def search_cases(first_name, last_name, middle_name=''):
+def search_cases(guid, first_name, last_name, middle_name=''):
     base_url = "https://www.oscn.net/dockets/Results.aspx?db=all&number=&lname={}&fname={}&mname={}"
 
     # Format the url with the provided names
@@ -250,7 +250,7 @@ def search_cases(first_name, last_name, middle_name=''):
 
     # Define headers for the request
     headers = {
-        "User-Agent": st.secrets['account']['guid'],
+        "User-Agent": guid,
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
     }
 
