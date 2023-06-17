@@ -290,13 +290,15 @@ def search_cases(guid, first_name, last_name, middle_name=''):
         # Create DataFrame
         df = pd.DataFrame({
             'Case Number': case_numbers,
-            'County': counties,
+            'Court': counties,
             'Found Party': found_names,
             'Date': dates,
             'Case Name': case_names,
             'Link': links,
 
         })
+
+        df['Court'] = df['Court'].replace(['Court', 'County'], '', regex=True).str.strip().str.title()
 
         return df
 

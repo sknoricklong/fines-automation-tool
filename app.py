@@ -59,25 +59,14 @@ selected_courts = []
 if first_name and last_name:
     search_checkbox = st.checkbox("Search Cases")
     if search_checkbox:
-        party_name = f"{last_name}, {first_name}"
-        dataframes = search_cases(guid, first_name, last_name, middle_name)
+        combined_df = search_cases(guid, first_name, last_name, middle_name)
 
-        if dataframes:
-            combined_df = pd.concat(dataframes, axis=0, join='outer', ignore_index=True)
-            combined_df = combined_df.sort_values(by=['Court'], ascending=True).reset_index(drop=True)
-
-            unique_courts = combined_df['Court'].unique().tolist()
-
-            try:
-                formatted_eligible_counties = [format_county(county) for county in eligible_counties]
-                selected_courts = st.multiselect("Select courts:", unique_courts, default=formatted_eligible_counties)
-            except:
-                selected_courts = st.multiselect("Select courts:", unique_courts, default=unique_courts)
-
-
-        else:
-            st.write("No data found.")
-            combined_df = None
+        unique_courts = combined_df['Court'].unique().tolist()
+        try:
+            formatted_eligible_counties = [format_county(county) for county in eligible_counties]
+            selected_courts = st.multiselect("Select courts:", unique_courts, default=formatted_eligible_counties)
+        except:
+            selected_courts = st.multiselect("Select courts:", unique_courts, default=unique_courts)
 
 if combined_df is not None:
     filtered_df = combined_df.loc[combined_df['Court'].isin(selected_courts)]
@@ -98,66 +87,54 @@ if st.button("Done selecting? Click here to pull data."):
     case_list = edited_df.loc[keep_rows, 'Case Number'].tolist()
     url_list = edited_df.loc[keep_rows, 'Link'].tolist()
 
-    oscn_url_list = [url for url in url_list if "oscn.net" in url]
-    oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" in url]
-    non_oscn_url_list = [url for url in url_list if "oscn.net" not in url]
-    non_oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" not in url]
-
+    # oscn_url_list = [url for url in url_list if "oscn.net" in url]
+    # oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" in url]
+    # non_oscn_url_list = [url for url in url_list if "oscn.net" not in url]
+    # non_oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" not in url]
+    #
+    # oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, guid)
+    # oscn_results = process_urls(oscn_case_soup_dict, first_name, last_name)
+    #
+    # non_oscn_results = {}
+    # for case_number, url in zip(non_oscn_case_list, non_oscn_url_list):
+    #     amount_owed, receipts_table = scrape_odcr(url)
+    #     non_oscn_results[case_number] = (amount_owed, receipts_table)
+    #
+    # results = {**oscn_results, **non_oscn_results}
+    base = "https://www.oscn.net/dockets/"
+    oscn_url_list = [base + url for url in url_list]
+    oscn_case_list = [case_list[i] for i, url in enumerate(url_list)]
     oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, guid)
-    oscn_results = process_urls(oscn_case_soup_dict, first_name, last_name)
-
-    non_oscn_results = {}
-    for case_number, url in zip(non_oscn_case_list, non_oscn_url_list):
-        amount_owed, receipts_table = scrape_odcr(url)
-        non_oscn_results[case_number] = (amount_owed, receipts_table)
-
-    results = {**oscn_results, **non_oscn_results}
+    results = process_urls(oscn_case_soup_dict, first_name, last_name)
 
     total_fees_paid_sum = 0
     total_fees_issued_sum = 0
     total_months_paid_sum = 0
 
-    # Calculate max_consecutive_sum only if oscn_results is not empty
-    if oscn_results:
-        max_consecutive_sum = max([result[0] for result in oscn_results.values()])
-    else:
-        max_consecutive_sum = 0
+    # # Calculate max_consecutive_sum only if oscn_results is not empty
+    # if oscn_results:
+    #     max_consecutive_sum = max([result[0] for result in oscn_results.values()])
+    # else:
+    #     max_consecutive_sum = 0
+
+    max_consecutive_sum = max([result[0] for result in results.values()])
 
     # Display individual case results
     for case_number, result in results.items():
         st.markdown(f"**Results for Case Number: {case_number}**")
         url_index = case_list.index(case_number)
-        if "oscn.net" in url_list[url_index]:
-            st.write("URL: ", url_list[url_index])
-            streak_length, total_paid_months, streak_end, total_amount_paid, total_amount_owed, has_payment_plan, already_received_waiver, fee_table_paid, fee_table_issued = result
-            st.write("Streak Length: ", streak_length)
-            st.write("Total Paid Months: ", total_paid_months)
-            st.write("Streak End: ", streak_end)
-            st.write("Total Amount Paid: ", total_amount_paid)
-            st.write("Total Amount Owed: ", total_amount_owed)
-            st.write("Fee Table Paid: ", fee_table_paid)
-            st.write("Fee Table Issued: ", fee_table_issued)
-            total_fees_paid_sum += total_amount_paid
-            total_fees_issued_sum += total_amount_owed
-            total_months_paid_sum += total_paid_months  # Add this line
-        else:
-            st.write("URL: ", "https://www1.odcr.com" + url_list[url_index])
-            amount_owed, receipts_table = result
-            st.write("Amount Owed: ", amount_owed)
-
-            if receipts_table is not None:
-                # Convert the "Amount" column to float values
-                receipts_table["Amount"] = receipts_table["Amount"].apply(lambda x: float(x.replace('$', '')))
-                non_oscn_total_paid = receipts_table[
-                    "Amount"].sum()  # Calculate the sum of the amount column if receipts_table is not None
-                st.write("Total Amount Paid: ", non_oscn_total_paid)
-                total_fees_paid_sum += non_oscn_total_paid
-            else:
-                non_oscn_total_paid = 0
-                st.write("Total Amount Paid: ", non_oscn_total_paid)
-            st.write("Receipts Table: ", receipts_table)
-
-            total_fees_issued_sum += amount_owed
+        st.write("URL: ", base + url_list[url_index])
+        streak_length, total_paid_months, streak_end, total_amount_paid, total_amount_owed, has_payment_plan, already_received_waiver, fee_table_paid, fee_table_issued = result
+        st.write("Streak Length: ", streak_length)
+        st.write("Total Paid Months: ", total_paid_months)
+        st.write("Streak End: ", streak_end)
+        st.write("Total Amount Paid: ", total_amount_paid)
+        st.write("Total Amount Owed: ", total_amount_owed)
+        st.write("Fee Table Paid: ", fee_table_paid)
+        st.write("Fee Table Issued: ", fee_table_issued)
+        total_fees_paid_sum += total_amount_paid
+        total_fees_issued_sum += total_amount_owed
+        total_months_paid_sum += total_paid_months  # Add this line
         st.write("---")
 
     st.title("Summary:")

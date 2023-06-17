@@ -104,15 +104,8 @@ def generate_excel_content(results, summary, case_list, url_list):
     for case_number, result in results.items():
         url_index = case_list.index(case_number)
         url = url_list[url_index]
-        if "oscn.net" in url:
-            streak_length, total_paid_months, _, total_amount_paid, total_amount_owed, _, _, fee_table_paid, fee_table_issued = result
-            receipts_table = None
-        else:
-            url = "https://www1.odcr.com" + url
-            total_amount_owed, receipts_table = result
-            total_amount_paid = sum(receipts_table["Amount"]) if receipts_table is not None else 0
-            fee_table_paid = fee_table_issued = None
-            streak_length = total_paid_months = None
+        streak_length, total_paid_months, _, total_amount_paid, total_amount_owed, _, _, fee_table_paid, fee_table_issued = result
+        receipts_table = None
 
         # Create a DataFrame with the individual case information (topline)
         case_info_df = pd.DataFrame(
@@ -153,15 +146,8 @@ def generate_excel_content(results, summary, case_list, url_list):
         for case_number, result in results.items():
             url_index = case_list.index(case_number)
             url = url_list[url_index]
-            if "oscn.net" in url:
-                streak_length, total_paid_months, _, total_amount_paid, total_amount_owed, _, _, fee_table_paid, fee_table_issued = result
-                receipts_table = None
-            else:
-                url = "https://www1.odcr.com" + url
-                total_amount_owed, receipts_table = result
-                total_amount_paid = sum(receipts_table["Amount"]) if receipts_table is not None else 0
-                fee_table_paid = fee_table_issued = None
-                streak_length = total_paid_months = None
+            streak_length, total_paid_months, _, total_amount_paid, total_amount_owed, _, _, fee_table_paid, fee_table_issued = result
+            receipts_table = None
 
                 # Create a DataFrame with the individual case information (topline)
             case_info_df = pd.DataFrame(
