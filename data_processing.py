@@ -185,7 +185,7 @@ def extract_fee_table(soup):
     return dataframes
 
 def extract_docket_table(soup):
-    tables = soup.select("table.docketlist.ocis, table.docketlist.kp")
+    tables = soup("table.docketlist.ocis, table.docketlist.kp")
     dataframes = []
     for table in tables:
         try:
