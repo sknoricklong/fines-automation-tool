@@ -4,3 +4,4 @@ bs4==0.0.1
 httpx==0.23.3
 lxml==4.9.2
 pyquery
+html5lib
