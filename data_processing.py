@@ -11,6 +11,7 @@ import time
 from bs4 import BeautifulSoup
 import streamlit as st
 import pandas as pd
+import lxml
 
 def longest_streak(data):
     data['date'] = pd.to_datetime(data['date'])
@@ -326,7 +327,7 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     # If the request was successful, parse the result
     if response.status_code == 200:
         #soup = pq(response.content)
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, 'lxml')
 
     st.write(soup)
 
