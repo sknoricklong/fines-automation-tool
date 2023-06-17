@@ -329,7 +329,7 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
         soup_pq = pq(response.content.decode('utf-8'))
         soup_bs = BeautifulSoup(str(soup_pq), 'html.parser')  # Convert PyQuery object to BeautifulSoup
 
-    st.write(soup_bs)
+    st.write(soup_pq)
 
     # # Reserve a slot
     # progress_text = st.empty()
