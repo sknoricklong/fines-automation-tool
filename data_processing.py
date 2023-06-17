@@ -247,7 +247,7 @@ def extract_docket_table(soup):
 def search_cases(guid, first_name, last_name, middle_name=''):
     base_url = "https://www.oscn.net/dockets/Results.aspx?db=all&number=&lname={}&fname={}&mname={}"
 
-    # Format the url with the provided names
+    # Format the URL with the provided names
     url = base_url.format(last_name, first_name, middle_name)
     progress_text = st.empty()
     # Define headers for the request
@@ -274,10 +274,19 @@ def search_cases(guid, first_name, last_name, middle_name=''):
         links = []
         htmls = []
         counter = 1
+        case_number_set = set()  # Set to store case numbers
+
         # Loop through each row
         for row in rows:
             tds = row.find_all('td')
-            case_numbers.append(tds[0].text.strip())
+            case_number = tds[0].text.strip()
+
+            if case_number in case_number_set:
+                counter += 1
+                continue  # Skip adding rows with duplicate case numbers
+
+            case_number_set.add(case_number)
+            case_numbers.append(case_number)
             dates.append(tds[1].text.strip())
             case_names.append(tds[2].text.strip())
             found_names.append(tds[3].text.strip())
@@ -314,6 +323,7 @@ def search_cases(guid, first_name, last_name, middle_name=''):
     else:
         print(f"Failed to get page, status code: {response.status_code}")
         return pd.DataFrame()  # Return empty DataFrame if request fails
+
 
 @st.cache_data
 def navigate_and_get_url_soups(url_list, case_list, guid):
