@@ -292,8 +292,8 @@ def search_cases(guid, first_name, last_name, middle_name=''):
                                                                                         class_='caseCourtHeader').text.strip()
             county = full_county_text.split("Found")[0].strip().title()
             counties.append(county)
-            counter += 1
             progress_text.text(f'Finished {counter} of {len(rows)}: {tds[0].text.strip()}')
+            counter += 1
 
         # Create DataFrame
         df = pd.DataFrame({

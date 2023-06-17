@@ -120,11 +120,11 @@ def generate_excel_content(results, summary, case_list, url_list):
         )
 
         # Append individual case summary to the DataFrame
-        individual_case_summaries = individual_case_summaries.append(case_info_df, ignore_index=True)
+        individual_case_summaries = pd.concat([individual_case_summaries, case_info_df], ignore_index=True)
 
         # Append fee_table_paid to the combined DataFrame
         if fee_table_paid is not None:
-            combined_fee_table_paid = combined_fee_table_paid.append(fee_table_paid, ignore_index=True)
+            combined_fee_table_paid = pd.concat([combined_fee_table_paid, fee_table_paid], ignore_index=True)
 
     # Calculate the longest streak for the combined fee_table_paid
     max_combined_streak = longest_streak(combined_fee_table_paid.reset_index())
