@@ -324,6 +324,7 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
 
     url = url_list[0]
     response = requests.get(url, headers=headers)
+    st.write(len(response.content))
     st.write(response.content.decode('utf-8'))
 
     # for i, (url, case_number) in enumerate(zip(url_list, case_list), start=1):
