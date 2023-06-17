@@ -4,10 +4,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
-from bs4 import BeautifulSoup
 import time
 import httpx
 from data_processing import *
+from bs4 import BeautifulSoup
+
 
 
 def navigate_and_get_url_soup(url_list, case_list, guid):
