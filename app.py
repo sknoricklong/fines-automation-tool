@@ -81,7 +81,7 @@ if combined_df is not None:
 
     if 'filtered_df' in locals():
         filtered_df.insert(0, 'selected', True)
-        edited_df = st.experimental_data_editor(filtered_df, use_container_width=True, num_rows="dynamic", key="unique_key")
+        edited_df = st.data_editor(filtered_df, use_container_width=True, num_rows="dynamic", key="unique_key")
 
 st.title("Step 4: Select Cases to Find Fees")
 
