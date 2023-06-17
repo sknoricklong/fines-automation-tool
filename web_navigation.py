@@ -19,18 +19,23 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
 
     case_soup_dict = {}
 
-    with httpx.Client() as client:
-        for url, case_number in zip(url_list, case_list):
-            # Navigate to the website
-            response = client.request("GET", url, headers=headers, follow_redirects=True)
-            response.raise_for_status()  # Ensure we've got a successful response
+    for url, case_number in zip(url_list, case_list):
+        # Navigate to the website
+        headers = {
+            "User-Agent": guid,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+        }
 
-            # Parse the response with BeautifulSoup
-            soup = BeautifulSoup(response.text, 'html.parser')
+        # Make the request
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Ensure we've got a successful response
 
-            # Add the case number and soup to the dictionary
-            case_soup_dict[case_number] = soup
-            time.sleep(1)
+        # Parse the response with BeautifulSoup
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Add the case number and soup to the dictionary
+        case_soup_dict[case_number] = soup
+        time.sleep(1)
 
     return case_soup_dict
 
