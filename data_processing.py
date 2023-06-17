@@ -374,5 +374,6 @@ def navigate_and_get_url_soups(url_list, case_list, guid):
 def create_case_soup_dict(case_list, html_list):
     oscn_case_soup_dict = {}
     for case, html in zip(case_list, html_list):
+        soup = BeautifulSoup(html, 'html.parser')
         oscn_case_soup_dict[case] = html
     return oscn_case_soup_dict
