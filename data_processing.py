@@ -305,3 +305,54 @@ def search_cases(guid, first_name, last_name, middle_name=''):
         print(f"Failed to get page, status code: {response.status_code}")
         return pd.DataFrame()  # Return empty DataFrame if request fails
 
+def navigate_and_get_url_soup(url_list, case_list, guid):
+    url_list, case_list = zip(*set(zip(url_list, case_list)))
+
+    case_soup_dict = {}
+    total_cases = len(case_list)  # Get total cases to be processed
+
+    headers = {
+        "User-Agent": guid,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+    }
+
+    url = url_list[0]
+    st.write(url)
+
+    # Check if response.text is None
+    # Make the request
+    response = requests.get(url, headers=headers)
+    soup = None  # Initialize soup
+    # If the request was successful, parse the result
+    if response.status_code == 200:
+        soup = pq(response.content)
+        soup = bs(response.content, 'html.parser')
+
+    st.write(soup)
+
+    # # Reserve a slot
+    # progress_text = st.empty()
+    #
+    # for i, (url, case_number) in enumerate(zip(url_list, case_list), start=1):
+    #     # Navigate to the website
+    #     headers = {
+    #         "User-Agent": guid,
+    #         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+    #     }
+    #
+    #     # Make the request
+    #     response = requests.get(url, headers=headers)
+    #     response.raise_for_status()  # Ensure we've got a successful response
+    #
+    #     # Parse the response with BeautifulSoup
+    #     soup = BeautifulSoup(response.text, 'html.parser')
+    #
+    #     # Add the case number and soup to the dictionary
+    #     case_soup_dict[case_number] = soup
+    #
+    #     # Update the message in the reserved slot
+    #     progress_text.text(f'Finished {i} of {total_cases}: {case_number}')
+    #
+    #     time.sleep(1)
+    #
+    # return case_soup_dict
