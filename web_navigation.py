@@ -28,7 +28,7 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
 
     # Check if response.text is None
     if response.text is not None:
-        soups = response.text
+        soups = BeautifulSoup(response.text, 'html.parser')
     else:
         soups = "None"
     st.write(soups)
