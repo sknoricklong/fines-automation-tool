@@ -27,8 +27,8 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
 
     # Make the request
     response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    st.write(soup)
+    soups = BeautifulSoup(response.text, 'html.parser')
+    st.write(soups)
 
     # # Reserve a slot
     # progress_text = st.empty()
