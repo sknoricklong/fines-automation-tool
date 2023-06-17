@@ -7,7 +7,7 @@ from selenium.webdriver.chrome.service import Service
 import time
 import httpx
 from data_processing import *
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs
 from pyquery import PyQuery as pq
 
 def navigate_and_get_url_soup(url_list, case_list, guid):
@@ -31,6 +31,7 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     # If the request was successful, parse the result
     if response.status_code == 200:
         soup = pq(response.content)
+        soup = bs(response.content, 'html.parser')
 
     st.write(soup)
 
