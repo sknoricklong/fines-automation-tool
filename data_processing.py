@@ -313,47 +313,29 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     case_soup_dict = {}
     total_cases = len(case_list)  # Get total cases to be processed
 
-    headers = {
-        "User-Agent": guid,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-    }
+    # Reserve a slot
+    progress_text = st.empty()
 
-    url = url_list[0]
-    st.write(url)
+    for i, (url, case_number) in enumerate(zip(url_list, case_list), start=1):
+        # Navigate to the website
+        headers = {
+            "User-Agent": guid,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+        }
 
-    # Make the request
-    response = requests.get(url, headers=headers)
-    tables_bs = []  # Initialize BeautifulSoup table list
-    # If the request was successful, parse the result
-    if response.status_code == 200:
-        soup_pq = pq(response.content.decode('utf-8'))
-        soup_bs = BeautifulSoup(str(soup_pq), 'html.parser')  # Convert PyQuery object to BeautifulSoup
+        # Make the request
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Ensure we've got a successful response
 
-    st.write(soup_pq)
+        # Parse the response with BeautifulSoup
+        soup = pq(response.content.decode('utf-8'))
 
-    # # Reserve a slot
-    # progress_text = st.empty()
-    #
-    # for i, (url, case_number) in enumerate(zip(url_list, case_list), start=1):
-    #     # Navigate to the website
-    #     headers = {
-    #         "User-Agent": guid,
-    #         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-    #     }
-    #
-    #     # Make the request
-    #     response = requests.get(url, headers=headers)
-    #     response.raise_for_status()  # Ensure we've got a successful response
-    #
-    #     # Parse the response with BeautifulSoup
-    #     soup = BeautifulSoup(response.text, 'html.parser')
-    #
-    #     # Add the case number and soup to the dictionary
-    #     case_soup_dict[case_number] = soup
-    #
-    #     # Update the message in the reserved slot
-    #     progress_text.text(f'Finished {i} of {total_cases}: {case_number}')
-    #
-    #     time.sleep(1)
-    #
-    # return case_soup_dict
+        # Add the case number and soup to the dictionary
+        case_soup_dict[case_number] = soup
+
+        # Update the message in the reserved slot
+        progress_text.text(f'Finished {i} of {total_cases}: {case_number}')
+
+        time.sleep(1)
+
+    return case_soup_dict
