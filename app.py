@@ -106,58 +106,57 @@ if st.button("Done selecting? Click here to pull data."):
     #
     # results = {**oscn_results, **non_oscn_results}
     oscn_case_soup_dict = create_case_soup_dict(case_list, html_list)
-    st.write(len(oscn_case_soup_dict))
-    # results = process_urls(oscn_case_soup_dict, first_name, last_name)
-    #
-    # total_fees_paid_sum = 0
-    # total_fees_issued_sum = 0
-    # total_months_paid_sum = 0
-    #
-    # # # Calculate max_consecutive_sum only if oscn_results is not empty
-    # # if oscn_results:
-    # #     max_consecutive_sum = max([result[0] for result in oscn_results.values()])
-    # # else:
-    # #     max_consecutive_sum = 0
-    #
-    # max_consecutive_sum = max([result[0] for result in results.values()])
-    # results = dict(sorted(results.items(), key=lambda item: item[1][0], reverse=True))
-    #
-    # # Display individual case results
-    # for case_number, result in results.items():
-    #     st.markdown(f"**Results for Case Number: {case_number}**")
-    #     url_index = case_list.index(case_number)
-    #     st.write("URL: ", base + url_list[url_index])
-    #     streak_length, total_paid_months, streak_end, total_amount_paid, total_amount_owed, has_payment_plan, already_received_waiver, fee_table_paid, fee_table_issued = result
-    #     st.write("Streak Length: ", streak_length)
-    #     st.write("Total Paid Months: ", total_paid_months)
-    #     st.write("Streak End: ", streak_end)
-    #     st.write("Total Amount Paid: ", total_amount_paid)
-    #     st.write("Total Amount Owed: ", total_amount_owed)
-    #     st.write("Fee Table Paid: ", fee_table_paid)
-    #     st.write("Fee Table Issued: ", fee_table_issued)
-    #     total_fees_paid_sum += total_amount_paid
-    #     total_fees_issued_sum += total_amount_owed
-    #     total_months_paid_sum += total_paid_months  # Add this line
-    #     st.write("---")
-    #
-    # st.title("Summary:")
-    # st.write("Total Cases Searched: ", len(results))
-    # st.write("Total Fees Issued: ", total_fees_issued_sum)
-    # st.write("Total Fees Paid: ", total_fees_paid_sum)
-    # st.write("Total Months Paid: ", total_months_paid_sum)
-    # st.write("Max Consecutive Months Paid: ", max_consecutive_sum)
-    #
-    # excel_content = generate_excel_content(results, {
-    #     'Total Cases Searched': len(results),
-    #     'Total Fees Issued': total_fees_issued_sum,
-    #     'Total Fees Paid': total_fees_paid_sum,
-    #     'Total Months Paid': total_months_paid_sum,
-    #     'Max Consecutive Months Paid - Individual': max_consecutive_sum
-    # }, case_list, url_list)
-    #
-    # st.download_button(
-    #     label="Download Excel",
-    #     data=excel_content,
-    #     file_name=f"{last_name}_{first_name}_.xlsx",
-    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    # )
+    results = process_urls(oscn_case_soup_dict, first_name, last_name)
+
+    total_fees_paid_sum = 0
+    total_fees_issued_sum = 0
+    total_months_paid_sum = 0
+
+    # # Calculate max_consecutive_sum only if oscn_results is not empty
+    # if oscn_results:
+    #     max_consecutive_sum = max([result[0] for result in oscn_results.values()])
+    # else:
+    #     max_consecutive_sum = 0
+
+    max_consecutive_sum = max([result[0] for result in results.values()])
+    results = dict(sorted(results.items(), key=lambda item: item[1][0], reverse=True))
+
+    # Display individual case results
+    for case_number, result in results.items():
+        st.markdown(f"**Results for Case Number: {case_number}**")
+        url_index = case_list.index(case_number)
+        st.write("URL: ", base + url_list[url_index])
+        streak_length, total_paid_months, streak_end, total_amount_paid, total_amount_owed, has_payment_plan, already_received_waiver, fee_table_paid, fee_table_issued = result
+        st.write("Streak Length: ", streak_length)
+        st.write("Total Paid Months: ", total_paid_months)
+        st.write("Streak End: ", streak_end)
+        st.write("Total Amount Paid: ", total_amount_paid)
+        st.write("Total Amount Owed: ", total_amount_owed)
+        st.write("Fee Table Paid: ", fee_table_paid)
+        st.write("Fee Table Issued: ", fee_table_issued)
+        total_fees_paid_sum += total_amount_paid
+        total_fees_issued_sum += total_amount_owed
+        total_months_paid_sum += total_paid_months  # Add this line
+        st.write("---")
+
+    st.title("Summary:")
+    st.write("Total Cases Searched: ", len(results))
+    st.write("Total Fees Issued: ", total_fees_issued_sum)
+    st.write("Total Fees Paid: ", total_fees_paid_sum)
+    st.write("Total Months Paid: ", total_months_paid_sum)
+    st.write("Max Consecutive Months Paid: ", max_consecutive_sum)
+
+    excel_content = generate_excel_content(results, {
+        'Total Cases Searched': len(results),
+        'Total Fees Issued': total_fees_issued_sum,
+        'Total Fees Paid': total_fees_paid_sum,
+        'Total Months Paid': total_months_paid_sum,
+        'Max Consecutive Months Paid - Individual': max_consecutive_sum
+    }, case_list, url_list)
+
+    st.download_button(
+        label="Download Excel",
+        data=excel_content,
+        file_name=f"{last_name}_{first_name}_.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
