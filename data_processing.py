@@ -249,7 +249,7 @@ def search_cases(guid, first_name, last_name, middle_name=''):
 
     # Format the url with the provided names
     url = base_url.format(last_name, first_name, middle_name)
-
+    progress_text = st.empty()
     # Define headers for the request
     headers = {
         "User-Agent": guid,
@@ -273,7 +273,7 @@ def search_cases(guid, first_name, last_name, middle_name=''):
         counties = []
         links = []
         htmls = []
-
+        counter = 1
         # Loop through each row
         for row in rows:
             tds = row.find_all('td')
@@ -292,6 +292,7 @@ def search_cases(guid, first_name, last_name, middle_name=''):
                                                                                         class_='caseCourtHeader').text.strip()
             county = full_county_text.split("Found")[0].strip().title()
             counties.append(county)
+            progress_text.text(f'Finished {counter}: {tds[0].text.strip()}')
 
         # Create DataFrame
         df = pd.DataFrame({
