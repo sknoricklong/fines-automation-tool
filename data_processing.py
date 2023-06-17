@@ -325,8 +325,8 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     soup = None  # Initialize soup
     # If the request was successful, parse the result
     if response.status_code == 200:
-        soup = pq(response.content)
-        soup = bs(response.content, 'html.parser')
+        #soup = pq(response.content)
+        soup = BeautifulSoup(response.content, 'html.parser')
 
     st.write(soup)
 
