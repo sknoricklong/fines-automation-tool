@@ -185,7 +185,7 @@ def extract_fee_table(soup):
     return dataframes
 
 def extract_docket_table(soup):
-    tables = soup("table.docketlist.ocis, table.docketlist.kp")
+    tables = soup.select("table.docketlist.ocis, table.docketlist.kp")
     dataframes = []
     for table in tables:
         try:
@@ -316,26 +316,37 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     # Reserve a slot
     progress_text = st.empty()
 
-    for i, (url, case_number) in enumerate(zip(url_list, case_list), start=1):
-        # Navigate to the website
-        headers = {
+    headers = {
             "User-Agent": guid,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            "Accept": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
+            "Content-Type": "application/x-www-form-urlencoded"
         }
 
-        # Make the request
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Ensure we've got a successful response
+    url = url_list[0]
+    response = requests.get(url, headers=headers)
+    st.write(response.content.decode('utf-8'))
 
-        # Parse the response with BeautifulSoup
-        soup = pq(response.content.decode('utf-8'))
-
-        # Add the case number and soup to the dictionary
-        case_soup_dict[case_number] = soup
-
-        # Update the message in the reserved slot
-        progress_text.text(f'Finished {i} of {total_cases}: {case_number}')
-
-        time.sleep(1)
-
-    return case_soup_dict
+    # for i, (url, case_number) in enumerate(zip(url_list, case_list), start=1):
+    #     # Navigate to the website
+    #     headers = {
+    #         "User-Agent": guid,
+    #         "Accept": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
+    #         "Content-Type": "application/x-www-form-urlencoded"
+    #     }
+    #
+    #     # Make the request
+    #     response = requests.get(url, headers=headers)
+    #     response.raise_for_status()  # Ensure we've got a successful response
+    #
+    #     # Parse the response with BeautifulSoup
+    #     soup = pq(response.content.decode('utf-8'))
+    #
+    #     # Add the case number and soup to the dictionary
+    #     case_soup_dict[case_number] = soup
+    #
+    #     # Update the message in the reserved slot
+    #     progress_text.text(f'Finished {i} of {total_cases}: {case_number}')
+    #
+    #     time.sleep(1)
+    #
+    # return case_soup_dict
