@@ -89,6 +89,7 @@ if st.button("Done selecting? Click here to pull data."):
     keep_rows = edited_df.loc[edited_df['selected'] == True].index.tolist()
     case_list = edited_df.loc[keep_rows, 'Case Number'].tolist()
     url_list = edited_df.loc[keep_rows, 'Link'].tolist()
+    html_list = edited_df.loc[keep_rows, 'HTML'].tolist()
 
     # oscn_url_list = [url for url in url_list if "oscn.net" in url]
     # oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" in url]
@@ -104,10 +105,8 @@ if st.button("Done selecting? Click here to pull data."):
     #     non_oscn_results[case_number] = (amount_owed, receipts_table)
     #
     # results = {**oscn_results, **non_oscn_results}
-    base = "https://www.oscn.net/dockets/"
-    oscn_url_list = [base + url for url in url_list]
-    oscn_case_list = [case_list[i] for i, url in enumerate(url_list)]
-    oscn_case_soup_dict = navigate_and_get_url_soups(oscn_url_list, oscn_case_list, guid)
+    oscn_case_soup_dict = create_case_soup_dict(case_list, html_list)
+    st.write(len(oscn_case_soup_dict))
     # results = process_urls(oscn_case_soup_dict, first_name, last_name)
     #
     # total_fees_paid_sum = 0

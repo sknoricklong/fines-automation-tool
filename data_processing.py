@@ -292,7 +292,8 @@ def search_cases(guid, first_name, last_name, middle_name=''):
                                                                                         class_='caseCourtHeader').text.strip()
             county = full_county_text.split("Found")[0].strip().title()
             counties.append(county)
-            progress_text.text(f'Finished {counter}: {tds[0].text.strip()}')
+            counter += 1
+            progress_text.text(f'Finished {counter} of {len(rows)}: {tds[0].text.strip()}')
 
         # Create DataFrame
         df = pd.DataFrame({
@@ -368,3 +369,10 @@ def navigate_and_get_url_soups(url_list, case_list, guid):
     #     time.sleep(1)
     #
     # return case_soup_dict
+
+
+def create_case_soup_dict(case_list, html_list):
+    oscn_case_soup_dict = {}
+    for case, html in zip(case_list, html_list):
+        oscn_case_soup_dict[case] = html
+    return oscn_case_soup_dict
