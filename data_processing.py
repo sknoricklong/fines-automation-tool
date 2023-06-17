@@ -323,10 +323,25 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
         }
 
     url = url_list[0]
-    response = requests.get(url)
+    response = requests.get(url, headers=headers)
     html_content = response.content
     soup = BeautifulSoup(html_content, 'html5lib')
     st.write(soup)
+
+    # Define headers for the request
+    headers = {
+        "User-Agent": guid,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+    }
+
+    url = "https://www.oscn.net/dockets/Results.aspx?db=all&number=&lname=jordan&fname=leroy&mname=albert"
+    # Make the request
+    response = requests.get(url, headers=headers)
+    # If the request was successful, parse the result
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        st.write(soup)
 
     # for i, (url, case_number) in enumerate(zip(url_list, case_list), start=1):
     #     # Navigate to the website
