@@ -24,17 +24,14 @@ def navigate_and_get_url_soup(url_list, case_list, guid):
     url = url_list[0]
     st.write(url)
 
-    # Make the request
-    with httpx.Client() as client:
-        response = client.get(url, headers=headers)
-
     # Check if response.text is None
-    if response.text is not None:
-        soups = BeautifulSoup(response.text, 'html.parser')
-    else:
-        soups = "None"
+    # Make the request
+    response = requests.get(url, headers=headers)
+    # If the request was successful, parse the result
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, 'html.parser')
 
-    st.write(soups)
+    st.write(soup)
 
     # # Reserve a slot
     # progress_text = st.empty()
