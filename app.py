@@ -4,7 +4,6 @@ from data_processing import *
 from web_navigation import *
 
 alias_df, sentence_df, profile_df = load_dataframes()
-guid = "1a50a493-1c09-44ff-85b8-8464e87146cf"
 
 st.title("Step 1: Find Client ID")
 st.write("Source: https://okoffender.doc.ok.gov/")
@@ -50,7 +49,7 @@ if id:
         else:
             st.write("No eligible counties and cases with positive community sentences found.")
 
-st.title("Step 3: Search Cases on ODCR")
+st.title("Step 3: Search Cases on OSCN")
 st.write("Source: https://www1.odcr.com/")
 
 combined_df = None
@@ -60,7 +59,6 @@ if first_name and last_name:
     search_checkbox = st.checkbox("Search Cases")
     if search_checkbox:
         combined_df = search_cases(guid, first_name, last_name, middle_name)
-
         unique_courts = combined_df['Court'].unique().tolist()
         try:
             formatted_eligible_counties = [format_county(county) for county in eligible_counties]

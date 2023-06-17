@@ -256,7 +256,7 @@ def search_cases(guid, first_name, last_name, middle_name=''):
 
     # Make the request
     response = requests.get(url, headers=headers)
-
+    st.write(response.status_code)
     # If the request was successful, parse the result
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, 'html.parser')
