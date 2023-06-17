@@ -29,13 +29,9 @@ if id:
     st.subheader("Client Information:")
     st.write(filtered_profile_df)
 
-    first_name = official_first_name
-    middle_name = official_middle_name
-    last_name = official_last_name
-
     st.subheader("Sentence Cases:")
     if filtered_sentence_df.empty:
-        st.write(f"No sentence information found for {official_first_name} {official_last_name}")
+        st.write(f"No sentence information found for {first_name} {last_name}")
     else:
         filtered_sentence_df = filtered_sentence_df.sort_values(by=['community_sentence'], ascending=False).reset_index(drop=True)
         st.write(filtered_sentence_df)
