@@ -87,32 +87,12 @@ if st.button("Done selecting? Click here to pull data."):
     url_list = edited_df.loc[keep_rows, 'Link'].tolist()
     html_list = edited_df.loc[keep_rows, 'HTML'].tolist()
 
-    # oscn_url_list = [url for url in url_list if "oscn.net" in url]
-    # oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" in url]
-    # non_oscn_url_list = [url for url in url_list if "oscn.net" not in url]
-    # non_oscn_case_list = [case_list[i] for i, url in enumerate(url_list) if "oscn.net" not in url]
-    #
-    # oscn_case_soup_dict = navigate_and_get_url_soup(oscn_url_list, oscn_case_list, guid)
-    # oscn_results = process_urls(oscn_case_soup_dict, first_name, last_name)
-    #
-    # non_oscn_results = {}
-    # for case_number, url in zip(non_oscn_case_list, non_oscn_url_list):
-    #     amount_owed, receipts_table = scrape_odcr(url)
-    #     non_oscn_results[case_number] = (amount_owed, receipts_table)
-    #
-    # results = {**oscn_results, **non_oscn_results}
     oscn_case_soup_dict = create_case_soup_dict(case_list, html_list)
     results = process_urls(oscn_case_soup_dict, first_name, last_name)
 
     total_fees_paid_sum = 0
     total_fees_issued_sum = 0
     total_months_paid_sum = 0
-
-    # # Calculate max_consecutive_sum only if oscn_results is not empty
-    # if oscn_results:
-    #     max_consecutive_sum = max([result[0] for result in oscn_results.values()])
-    # else:
-    #     max_consecutive_sum = 0
 
     max_consecutive_sum = max([result[0] for result in results.values()])
     results = dict(sorted(results.items(), key=lambda item: item[1][0], reverse=True))

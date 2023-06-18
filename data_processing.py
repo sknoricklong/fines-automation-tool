@@ -386,3 +386,15 @@ def create_case_soup_dict(case_list, html_list):
     for case, html in zip(case_list, html_list):
         oscn_case_soup_dict[case] = html
     return oscn_case_soup_dict
+
+
+def process_urls(case_soup_dict, first_name, last_name):
+    results = {}
+
+    for case_number, html in case_soup_dict.items():
+        soup = BeautifulSoup(html, 'html.parser')
+        fee_table = extract_docket_table(soup)
+        result = extract_and_calculate(fee_table, first_name, last_name, case_number)
+        results[case_number] = result
+
+    return results
