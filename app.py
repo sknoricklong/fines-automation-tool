@@ -83,8 +83,8 @@ if check_password():
             else:
                 st.write("No eligible counties and cases with positive community sentences found.")
 
-    st.title("Step 3: Search Cases on OSCN")
-    st.write("Source: https://www1.odcr.com/")
+    st.title("Step 3: Search & Select Cases")
+    st.write("Source: https://www.oscn.net/")
 
     combined_df = None
     selected_courts = []
@@ -112,9 +112,10 @@ if check_password():
             filtered_df.insert(0, 'selected', True)
             edited_df = st.data_editor(filtered_df, use_container_width=True, num_rows="dynamic", key="unique_key")
 
-    st.title("Step 4: Select Cases to Find Fees")
+    st.title("Step 4: Summarize Fees")
 
     if st.button("Done selecting? Click here to pull data."):
+
         keep_rows = edited_df.loc[edited_df['selected'] == True].index.tolist()
         case_list = edited_df.loc[keep_rows, 'Case Number'].tolist()
         url_list = edited_df.loc[keep_rows, 'Link'].tolist()
@@ -130,6 +131,33 @@ if check_password():
         max_consecutive_sum = max([result[0] for result in results.values()])
         results = dict(sorted(results.items(), key=lambda item: item[1][0], reverse=True))
 
+        total_fees_issued_sum = round(total_fees_issued_sum, 2)
+        total_fees_paid_sum = round(total_fees_paid_sum, 2)
+
+        st.title("Summary:")
+        st.write("Total Cases Searched: ", len(results))
+        st.write("Total Fees Issued: ", total_fees_issued_sum)
+        st.write("Total Fees Paid: ", total_fees_paid_sum)
+        st.write("Total Months Paid: ", total_months_paid_sum)
+        st.write("Max Consecutive Months Paid: ", max_consecutive_sum)
+
+        excel_content = generate_excel_content(results, {
+            'Total Cases Searched': len(results),
+            'Total Fees Issued': total_fees_issued_sum,
+            'Total Fees Paid': total_fees_paid_sum,
+            'Total Months Paid': total_months_paid_sum,
+            'Max Consecutive Months Paid - Individual': max_consecutive_sum
+        }, case_list, url_list)
+
+        st.download_button(
+            label="Download Excel",
+            data=excel_content,
+            file_name=f"{last_name}_{first_name}_.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        st.write("---")
+
+        st.title("Individual:")
         # Display individual case results
         for case_number, result in results.items():
             st.markdown(f"**Results for Case Number: {case_number}**")
@@ -148,27 +176,8 @@ if check_password():
             total_months_paid_sum += total_paid_months  # Add this line
             st.write("---")
 
-        st.title("Summary:")
-        st.write("Total Cases Searched: ", len(results))
-        st.write("Total Fees Issued: ", total_fees_issued_sum)
-        st.write("Total Fees Paid: ", total_fees_paid_sum)
-        st.write("Total Months Paid: ", total_months_paid_sum)
-        st.write("Max Consecutive Months Paid: ", max_consecutive_sum)
 
-        total_fees_issued_sum = round(total_fees_issued_sum, 2)
-        total_fees_paid_sum = round(total_fees_paid_sum, 2)
 
-        excel_content = generate_excel_content(results, {
-            'Total Cases Searched': len(results),
-            'Total Fees Issued': total_fees_issued_sum,
-            'Total Fees Paid': total_fees_paid_sum,
-            'Total Months Paid': total_months_paid_sum,
-            'Max Consecutive Months Paid - Individual': max_consecutive_sum
-        }, case_list, url_list)
 
-        st.download_button(
-            label="Download Excel",
-            data=excel_content,
-            file_name=f"{last_name}_{first_name}_.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+
+
