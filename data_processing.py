@@ -1,18 +1,9 @@
 import re
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 import requests
 import time
 from bs4 import BeautifulSoup
 import streamlit as st
 import pandas as pd
-import lxml
-from pyquery import PyQuery as pq
 
 def longest_streak(data):
     data['date'] = pd.to_datetime(data['date'])
@@ -201,48 +192,6 @@ def extract_docket_table(soup):
 
     return fee_table
 
-# @st.cache_data
-# def search_cases(party_name):
-#     url = "https://www1.odcr.com/"
-#
-#     @st.cache_resource
-#     def get_driver():
-#         return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-#
-#     options = Options()
-#     options.add_argument('--disable-gpu')
-#     options.add_argument('--headless')
-#
-#     driver = get_driver()
-#
-#     # Navigate to the website
-#     # Navigate to the website
-#     driver.get(url)
-#
-#     # Find the input field by id and send the party_name
-#     input_element = driver.find_element(By.ID, "search-party")
-#     input_element.send_keys(party_name)
-#     st.write(party_name)
-#
-#     # Click the "Search for cases" button
-#     submit_button = driver.find_element(By.XPATH, '//input[@type="submit"]')
-#     submit_button.click()
-#
-#     # Add an explicit wait to allow more time for the tables to load
-#     time.sleep(10)
-#
-#     # Get the page source and parse it with BeautifulSoup
-#     html_content = driver.page_source
-#     soup = BeautifulSoup(html_content, 'html.parser')
-#
-#     # Extract the DataFrames using BeautifulSoup
-#     dataframes = extract_fee_table(soup)
-#
-#     # Close the browser window
-#     driver.quit()
-#
-#     return dataframes
-
 @st.cache_data
 def search_cases(guid, first_name, last_name, middle_name=''):
     base_url = "https://www.oscn.net/dockets/Results.aspx?db=all&number=&lname={}&fname={}&mname={}"
@@ -344,41 +293,6 @@ def navigate_and_get_url_soups(url_list, case_list, guid):
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, 'html.parser')
         st.write(soup)
-
-
-
-    # url_list, case_list = zip(*set(zip(url_list, case_list)))
-    #
-    # case_soup_dict = {}
-    # total_cases = len(case_list)  # Get total cases to be processed
-    #
-    # # Reserve a slot
-    # progress_text = st.empty()
-
-    # for i, (url, case_number) in enumerate(zip(url_list, case_list), start=1):
-    #     # Navigate to the website
-    #     headers = {
-    #         "User-Agent": guid,
-    #         "Accept": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
-    #         "Content-Type": "application/x-www-form-urlencoded"
-    #     }
-    #
-    #     # Make the request
-    #     response = requests.get(url, headers=headers)
-    #     response.raise_for_status()  # Ensure we've got a successful response
-    #
-    #     # Parse the response with BeautifulSoup
-    #     soup = pq(response.content.decode('utf-8'))
-    #
-    #     # Add the case number and soup to the dictionary
-    #     case_soup_dict[case_number] = soup
-    #
-    #     # Update the message in the reserved slot
-    #     progress_text.text(f'Finished {i} of {total_cases}: {case_number}')
-    #
-    #     time.sleep(1)
-    #
-    # return case_soup_dict
 
 
 def create_case_soup_dict(case_list, html_list):

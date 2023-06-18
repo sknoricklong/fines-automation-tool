@@ -26,6 +26,9 @@ if id:
 
     status, facility, official_last_name, official_first_name, official_middle_name, filtered_profile_df = search_profile(
         profile_df, id)
+
+    if not middle_name and official_middle_name:
+        middle_name = official_middle_name
     st.subheader("Client Information:")
     st.write(filtered_profile_df)
 
