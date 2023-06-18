@@ -141,7 +141,6 @@ if check_password():
         total_fees_issued_sum = round(total_fees_issued_sum, 2)
         total_fees_paid_sum = round(total_fees_paid_sum, 2)
 
-        st.title("Summary:")
         st.write("Total Cases Searched: ", len(results))
         st.write("Total Fees Issued: ", total_fees_issued_sum)
         st.write("Total Fees Paid: ", total_fees_paid_sum)
@@ -164,7 +163,7 @@ if check_password():
         )
         st.write("---")
 
-        st.title("Individual:")
+        st.title("Case-by-Case:")
         # Display individual case results
         for case_number, result in results.items():
             st.markdown(f"**Results for Case Number: {case_number}**")
