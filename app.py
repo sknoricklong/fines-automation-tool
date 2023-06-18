@@ -129,6 +129,13 @@ if check_password():
         total_months_paid_sum = 0
 
         max_consecutive_sum = max([result[0] for result in results.values()])
+
+        for case_number, result in results.items():
+            streak_length, total_paid_months, streak_end, total_amount_paid, total_amount_owed, has_payment_plan, already_received_waiver, fee_table_paid, fee_table_issued = result
+            total_fees_paid_sum += total_amount_paid
+            total_fees_issued_sum += total_amount_owed
+            total_months_paid_sum += total_paid_months  # Add this line
+
         results = dict(sorted(results.items(), key=lambda item: item[1][0], reverse=True))
 
         total_fees_issued_sum = round(total_fees_issued_sum, 2)
