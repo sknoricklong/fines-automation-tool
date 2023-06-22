@@ -59,6 +59,11 @@ if check_password():
 
         if not middle_name and official_middle_name:
             middle_name = official_middle_name
+
+        if official_first_name and official_last_name:
+            first_name = official_first_name
+            last_name = official_last_name
+
         st.subheader("Client Information:")
         st.write(filtered_profile_df)
 
@@ -88,7 +93,7 @@ if check_password():
 
     combined_df = None
     selected_courts = []
-
+    st.write(f"{first_name} {middle_name} {last_name}")
     if first_name and last_name:
         search_checkbox = st.checkbox("Search Cases")
         if search_checkbox:
