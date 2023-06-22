@@ -211,6 +211,7 @@ def search_cases(guid, first_name, last_name, middle_name=''):
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, 'html.parser')
 
+
         # Find all tr elements with class 'resultTableRow'
         rows = soup.find_all('tr', class_='resultTableRow')
 
@@ -265,7 +266,10 @@ def search_cases(guid, first_name, last_name, middle_name=''):
 
         })
 
-        df['Court'] = df['Court'].replace(['Court', 'County'], '', regex=True).str.strip().str.title()
+        try:
+            df['Court'] = df['Court'].replace(['Court', 'County'], '', regex=True).str.strip().str.title()
+        except AttributeError:
+            st.write(f"No results found for {first_name.title()} {last_name.title()}")
 
         return df
 

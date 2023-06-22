@@ -1,7 +1,6 @@
 import streamlit as st
 from utils import *
 from data_processing import *
-from web_navigation import *
 
 def check_password():
     """Returns `True` if the user had the correct password."""
@@ -69,7 +68,7 @@ if check_password():
 
         st.subheader("Sentence Cases:")
         if filtered_sentence_df.empty:
-            st.write(f"No sentence information found for {first_name} {last_name}")
+            st.write(f"No sentence information found for {first_name.title()} {last_name.title()}")
         else:
             filtered_sentence_df = filtered_sentence_df.sort_values(by=['community_sentence'], ascending=False).reset_index(drop=True)
             st.write(filtered_sentence_df)
@@ -97,7 +96,11 @@ if check_password():
     if first_name and last_name:
         search_checkbox = st.checkbox("Search Cases")
         if search_checkbox:
-            combined_df = search_cases(guid, first_name, last_name, middle_name)
+            st.write(middle_name)
+            if middle_name:
+                combined_df = search_cases(guid, first_name, last_name, middle_name)
+            else:
+                combined_df = search_cases(guid, first_name, last_name)
             unique_courts = combined_df['Court'].unique().tolist()
             try:
                 formatted_eligible_counties = [format_county(county) for county in eligible_counties]
@@ -133,7 +136,11 @@ if check_password():
         total_fees_issued_sum = 0
         total_months_paid_sum = 0
 
-        max_consecutive_sum = max([result[0] for result in results.values()])
+        try:
+            max_consecutive_sum = max([result[0] for result in results.values()])
+        except ValueError:
+            st.write(f"No results found for {first_name.title()} {last_name.title()}")
+
 
         for case_number, result in results.items():
             streak_length, total_paid_months, streak_end, total_amount_paid, total_amount_owed, has_payment_plan, already_received_waiver, fee_table_paid, fee_table_issued = result
