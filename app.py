@@ -78,12 +78,13 @@ if check_password():
             eligible_cases = filtered_sentence_df.loc[filtered_sentence_df['community_sentence'].notnull() & (
                         filtered_sentence_df['community_sentence'] > 0), 'crf_number'].unique()
 
-            st.write(f"*Status*: {status}")
-            st.write(f"Facility: {facility.title()}")
+            st.write(f"**Status**: {status}")
+            st.write(f"**Facility**: {facility.title()}")
 
             if eligible_counties.size > 0 and eligible_cases.size > 0:
-                st.write(f"Eligible Counties: {', '.join(eligible_counties)}")
-                st.write(f"Eligible Cases: {', '.join(eligible_cases)}")
+                st.write(f"**Eligible Counties**: {', '.join(eligible_counties)}")
+                st.write(f"**Eligible Cases**: {', '.join(eligible_cases)}")
+
             else:
                 st.write("No eligible counties and cases with positive community sentences found.")
 
