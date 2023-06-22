@@ -93,7 +93,7 @@ if check_password():
 
     combined_df = None
     selected_courts = []
-    st.write(f"{first_name} {middle_name} {last_name}")
+
     if first_name and last_name:
         search_checkbox = st.checkbox("Search Cases")
         if search_checkbox:
