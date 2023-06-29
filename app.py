@@ -97,7 +97,6 @@ if check_password():
     if first_name and last_name:
         search_checkbox = st.checkbox("Search Cases")
         if search_checkbox:
-            st.write(middle_name)
             if middle_name:
                 combined_df = search_cases(guid, first_name, last_name, middle_name)
             else:
