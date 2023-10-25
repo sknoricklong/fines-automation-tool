@@ -45,6 +45,10 @@ def update_amount_by_name(fee_table, first_name, last_name, case_number):
 
 def extract_and_calculate(fee_table, first_name, last_name, case_number):
     fee_table = fee_table.drop_duplicates()
+
+    # Remove rows with 'VICTIMS' in the description
+    fee_table = fee_table[~fee_table['description'].str.contains('VICTIMS', case=False, na=False)]
+
     full_name = f'{last_name.upper()}, {first_name.upper()}'
     if fee_table['party'].isnull().all() or fee_table['party'].eq('').all():
         pass
